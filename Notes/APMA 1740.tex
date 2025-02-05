@@ -55,6 +55,8 @@
 \newcommand{\ket}[1]{\left\vert #1 \right\rangle}
 
 \newcommand{\abs}[1]{\left\vert #1 \right\vert}
+\newcommand{\norm}[1]{\left\vert\left\vert #1 \right\vert\right\vert}
+
 \newcommand{\mfX}{\mathfrak{X}}
 \newcommand{\ep}{\varepsilon}
 
@@ -86,6 +88,8 @@
 \newcommand*{\tbf}[1]{\ifmmode\mathbf{#1}\else\textbf{#1}\fi}
 
 \DeclareMathOperator*{\argmax}{\arg\max}
+\DeclareMathOperator*{\argmin}{\arg\min}
+
 
 \usepackage{tcolorbox}
 \tcbuselibrary{breakable, skins}
@@ -423,4 +427,231 @@ measures how close $q$ is to $p$.
 Find
 \[q = \argmax_{\sum q_x \Ec(x) = \theta} (-D(q \parallel p))\]
 using Lagrange multipliers
+
+\section{Jan 31}
+\tbf{Recall:} $D(q \parallel p) = 0$ iff $p = q$.
+
+\begin{proof}
+    \emph{Proof:}
+    \begin{align*}
+        D(q \parallel p) & = \sum_{x=1}^s q_x \log \frac{p_x}{q_x}                 \\
+        X \sim q         & = \E[\log \frac{q_x}{p_x}] = -\E[\log \frac{p_x}{q_x}]  \\
+                         & \overset{\text{Jensen}}{\geq} -\log[\E \frac{p_x}{q_x}] \\
+                         & = -\log [\sum q_x \frac{p_x}{q_x}] = 0
+    \end{align*}
+
+    Hence, we get the equality iff $\E g(Y) = g(\E Y)$ where $Y = \frac{p_x}{q_x}$ ($x \sim q$) and $g(Y) = -\log Y$. ($g$ is strictly convex, i.e. $\E g(Y) = g(\E Y)$, iff $Y$ is a const a.s.)
+
+    But since $Y = \E Y = 1$, $\frac{p_x}{q_x} = 1 \implies p_x = q_x$ a.s.
+\end{proof}
+
+Last time, we discussed the cases in which the approximation $\P(\hat p = q) \approx D(q \parallel p)$ fails. But why does this happen?
+
+Recall
+\[\P(\hat p = q) = \binom{n}{n_1\cdots n_s} \prod_i p_i^{n_i}\]
+where $n_i = q_i \cdot n$.
+
+But this binomial coefficient is well defined only if $q_i n \in \N$ for all $i$. Hence, the approximation only holds for distributions $q$ with $q_i \cdot n \in \N$ for all $i$.
+
+\subsection{Sanov's Theorem}
+
+\tbf{Motivation:} As usual, let $p$ be a PMF on $\{1, \dots, s\}$ and $X_1, X_2, \, \dots,\, X_n \iid p$. We know that for large $n$, $\hat p \approx p$. But this relation is only probabilistic. How do we quantify the probability that $\hat p$ is far from $p$?
+
+\tbf{Example:} Let $s = 3$ and say $\hat p = (\hat p_1, \hat p_2, \hat p_3) = (a, b, c)$. Then
+\[\begin{cases}
+        a, b, c \geq 0 \\
+        a + b + c = 1
+    \end{cases}\]
+gives us a triangle in $\R^3$:
+\begin{center}
+    \begin{tikzpicture}
+        \begin{axis}[
+                axis lines = middle,
+                xlabel = $x$,
+                ylabel = $y$,
+                zlabel = $z$,
+                xtick=\empty,
+                ytick=\empty,
+                ztick=\empty,
+                xmin = 0, xmax = 2,
+                ymin = 0, ymax = 2,
+                zmin = 0, zmax = 2,
+                view={120}{45}
+            ]
+            \addplot3[
+                patch,
+                patch type=triangle,
+                opacity=0.5,
+                fill opacity=0.3,
+                color=blue,
+            ] coordinates {
+                    (1, 0, 0)
+                    (0, 1, 0)
+                    (0, 0, 1)
+                };
+
+            % Draw a patch B on the surface 
+            \node[red, scale=0.75] at (axis cs: 0.5, 0.25, 0.25) [below right] {$B$};
+            \draw[red] (axis cs: 0.5, 0.25, 0.25) ellipse [x radius=0.2, y radius=0.2, rotate around={45:(axis cs: 0.5, 0.25, 0.25)}];
+
+            % Plot random point p outside B 
+            \draw[red, fill] (axis cs: 0.25, 0.5, 0.5) circle (0.01) node[below right, scale=0.75] {$p$};
+
+            % Plot distinct point q 
+            \draw[red, fill] (axis cs: 0.1, 0.04, 0.1) circle (0.02) node[above left, scale=0.75] {$p^*$};
+        \end{axis}
+
+    \end{tikzpicture}
+\end{center}
+
+\begin{tbox}{\textbf{Sanov's Theorem:} Let $B$ be an open subset of the space of all PMF on $\{1, \dots, s\}$. Then
+        \[\lim_{n \to \infty} \frac{1}{n}\log \P(\hat p \in B) = -\inf_{q \in B} D(q \parallel p)\]
+        Further, if $p^* = \argmin_{q \in B} D(q \parallel p)$ is unique, then
+        \[\lim_{n \to \infty} \P(\norm{\hat p - p^*} > \ep \; | \; \hat p \in B) = 0 \quad \forall \ep > 0\]
+        where $\norm{\hat p - p^*}$ is any metric, say $\norm{\hat p - p^*} = \max_{x \in \{1, \dots, s\}} \abs{\hat p_x - p_x}$}
+    \emph{Proof:}
+\end{tbox}
+
+\tbf{Remark:} What if $p \in B$? Then $\inf_{q \in B} D(q \parallel p) = 0$, so
+\[\frac{1}{n} \log \underbrace{e^{-o(n)}}\P(\hat p \in B) = 0\]
+
+
+\section{Feb 5}
+\tbf{Recall (Sanov's Theorem):} For $B$ open,
+\begin{enumerate}
+    \item \[\lim_{n \to \infty} \frac{1}{n} \log \P(\hat p_{x_1, \dots, x_n} \in B) = -\inf_{q\in B} D(q \parallel p)\]
+    \item If $\exists ! \; p^* = \argmin_{q \in \bar B} D(q \parallel p)$, then
+          \[\lim_{n \to \infty} \P(\norm{\hat p - p} > \ep \; | \; \hat p \in B) = 0 \quad \forall \ep >0 \]
+\end{enumerate}
+
+
+\begin{center}
+    \begin{tikzpicture}
+        % Draw a blob
+        \fill[blue, opacity=0.3] plot[smooth cycle, tension=1.2] coordinates {
+                (0, 0)
+                (0.8, 0.3)
+                (1.2, 1.1)
+                (0.4, 2.5)
+                (-1, 2.3)
+                (-1.4, 1.6)
+                (-1.2, 0.8)
+                (-0.6, 0.2)
+            };
+
+        \draw[fill, red] (1.12, 1.5) circle (0.05) node[above right] {$p^*$};
+        \draw[fill, red] (3, 2) circle (0.05) node[above right] {$p$};
+
+        \node[blue, below right] at (0, 0) {$B$};
+    \end{tikzpicture}
+\end{center}
+
+This leads to some interesting questions:
+\begin{enumerate}
+    \item Why is $p^*$ drawn on the boundary?
+    \item Is there a case when $p^*$ lies in the interior?
+\end{enumerate}
+
+For the second: yes, if $p \in B$ (in which case $p$ is the global minimizer of $D(q \parallel p)$).
+
+For the first, it suffices to show that since $D(q \parallel p)$ is a convex function, on any set $B$ with $p \notin B$, the minimizer $p^*$ must lie on the boundary.
+
+\emph{Example:}
+
+\begin{center}
+    \begin{tikzpicture}
+        \begin{axis}[
+                axis lines = middle,
+                xlabel = $x$,
+                ylabel = $y$,
+                xtick=\empty,
+                ytick=\empty,
+                clip=false
+            ]
+            \addplot[blue, domain=-4:1] {x^2 + 1};
+            \addplot[red, dashed, domain=1:2] {x^2 + 1};
+            \addplot[blue, domain=2:4] {x^2 + 1};
+
+
+            \addplot[red, ultra thick, dashed, domain=1:2] {0} node[below] {$B$};
+
+            \coordinate (A) at (0, 1);
+
+            \coordinate (B) at (1, 2);
+
+        \end{axis}
+        \draw[blue, fill] (A) circle (0.1) node[above left] {$p$};
+        \draw[red] (B) circle (0.1) node[above] {$p^*$};
+    \end{tikzpicture}
+\end{center}
+
+\emph{Example:} $B = \{q \; | \; \exists x: \abs{q_x - p_x} > 0\}$
+
+By Sanov,
+\[\P(\hat p_n \in B) \approx \exp(-n \inf_{q\in B} D(q \parallel p)) \leq e^{-n/2} < 10\%\]
+
+Now let's prove the claim:
+\begin{proof}
+    \emph{Proof:}
+    \begin{align*}
+        F(q)                                              & = D(q \parallel p) = \sum q_x \log \frac{p_x}{q_x} \\
+                                                          & = \sum q_x \log q_x - \sum q_x \log p_x            \\
+        \frac{\partial F}{\partial q_x}                   & = \log q_x + 1 - \log p_x                          \\
+        \frac{\partial^2 F}{\partial q_x \, \partial q_y} & = \begin{cases}
+                                                                  1/q_x & x = y    \\
+                                                                  0     & x \neq y
+                                                              \end{cases}                                 \\
+        H                                                 & = \begin{pmatrix}
+                                                                  \frac{1}{q_1}                             \\
+                                                                   & \frac{1}{q_2}                          \\
+                                                                   &               & \ddots                 \\
+                                                                   &               &        & \frac{1}{q_s}
+                                                              \end{pmatrix}
+    \end{align*}
+    But $\forall v \in \R^s$, $v^T H v = \sum v_i^2 \frac{1}{q_i} \geq 0 \implies H$ is positive semi-definite. Hence $F$ is convex.
+\end{proof}
+
+\subsection{Back to Gibbs' Heat Bath}
+Recall the original motivating example where $X_1, \dots, X_n \sim p$, and $\frac{1}{n} \sum_{i=1}^{n} \Ec(X_i) = \theta$.
+
+Previosuly, we showed that $\theta = \frac{1}{n} \sum_{i=1}^{n} \Ec(X_i) = \E_{\hat p} [\Ec(X)]$.
+
+Now consider the set $B = \{q \; | \; \E_q [\Ec(X)] > \theta\}$ and define $\Omega = \{q: \E_q [\Ec(X)] = \theta\}$.
+
+\begin{center}
+    \begin{tikzpicture}
+        \fill[opacity=0.3] plot coordinates {
+                (0, 0)
+                (2, 2)
+                (0, 2)
+            };
+
+        \draw[fill, red] (0.5, 1) circle (0.05) node[above] {$q$};
+        \draw (0, 0) -- (2, 2) node[right] {$B$};
+
+        \draw[fill, blue] (3, 0) circle (0.05) node[above] {$p$};
+    \end{tikzpicture}
+\end{center}
+Imagine we observe some sample with energy higher than expected (i.e. $q \in B$). What is the probability of this occuring?
+
+By Sanov, in order to find $\inf_{q \in B} D(q \parallel p)$, it suffices to find $p^*$ such that $D(p^* \parallel p) = \inf_{q \in B} D(q \parallel p)$.
+
+In the past, we used Lagrange multipliers to confirm our solution is in the \tbf{exponential family}
+\[p_x^* = \frac{1}{Z_{\lambda}} p_x \exp(\lambda \Ec(x)) \quad \forall x\]
+for some $\lambda$.
+
+\emph{Example of Exponential Family:} $\mathcal{N}(\mu, \sigma^2)$ has PDF $\frac{1}{Z} e^{-\frac{(x- \mu)^2}{2\sigma^2}}$
+
+If instead we had many constraints $\E_{\hat p} [\Ec_i(X)] = \theta_i$ for $i = 1, \dots, k$, we found minimizer
+\[p^* = \frac{1}{Z_{\lambda_1 \dots \lambda_k}} p_x \exp(\lambda_1 \Ec_1(x) + \dots + \lambda_k \Ec_k(x))\]
+where we found $\lambda_1, \dots, \lambda_k$ using Lagrange multipliers to satisfy the constraints and
+\[Z_{\lambda_1\dots \lambda_k} = \sum_x p_x \exp(\lambda_1 \Ec_1(x) + \lambda_k \Ec_k(x))\]
+
+These must also satisfy:
+\begin{enumerate}
+    \item $\frac{\partial}{\partial \lambda_k} \log Z_k = \E_{\lambda}[\Ec_k(X)]$
+    \item $\frac{\partial^2}{\partial \lambda_k \lambda_l} \log Z_k = \text{Cov}_{\lambda}(\Ec_k(X), \Ec_l(X)) \quad \forall k, l$
+    \item $\log Z_k$ is a convex function of $\lambda$ and it is strictly convex unless $\exists \alpha = (\alpha_1, \dots, \alpha_k)$ such that $\alpha \neq 0$ and $\sum_{k=1}^c \alpha_k \Ec_k(x) = \text{const} \quad \forall x$
+    \item $\log Z_{\lambda} - \sum \lambda_k \theta_k$ is convex in $\lambda$ and minimized when $\E_{\lambda}[\Ec(X)] =\theta_k$
+\end{enumerate}
 \end{document}
