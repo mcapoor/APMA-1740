@@ -33,7 +33,9 @@
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usepackage{tikz-cd}
+\usepackage{tikz-qtree}
 \pgfplotsset{compat=1.18}
+\usetikzlibrary{calc, intersections, decorations.markings}
 
 \newcommand{\ans}[1]{\boxed{\text{#1}}}
 \newcommand{\vecs}[1]{\langle #1\rangle}
@@ -56,6 +58,9 @@
 
 \newcommand{\abs}[1]{\left\vert #1 \right\vert}
 \newcommand{\norm}[1]{\left\vert\left\vert #1 \right\vert\right\vert}
+
+\newcommand{\Var}{\mathbb{V}}
+\newcommand{\Cov}{\text{Cov}\,}
 
 \newcommand{\mfX}{\mathfrak{X}}
 \newcommand{\ep}{\varepsilon}
@@ -114,6 +119,15 @@
     {\end{tcolorbox}}
 
 \newenvironment*{proof}[1][blue]{
+\begin{tcolorbox}[
+    parbox=false,
+    colback=#1!5!white,
+    colframe=#1!75!black,
+    breakable
+]}
+{\end{tcolorbox}}
+
+\newenvironment*{proposition}[1][gray]{
 \begin{tcolorbox}[
     parbox=false,
     colback=#1!5!white,
@@ -654,4 +668,327 @@ These must also satisfy:
     \item $\log Z_k$ is a convex function of $\lambda$ and it is strictly convex unless $\exists \alpha = (\alpha_1, \dots, \alpha_k)$ such that $\alpha \neq 0$ and $\sum_{k=1}^c \alpha_k \Ec_k(x) = \text{const} \quad \forall x$
     \item $\log Z_{\lambda} - \sum \lambda_k \theta_k$ is convex in $\lambda$ and minimized when $\E_{\lambda}[\Ec(X)] =\theta_k$
 \end{enumerate}
+
+\section{Feb 7}
+Last time, we defined the set
+\[B = \{q: \E_q \Ec(X) < \theta\}\]
+
+For $p \notin B$ known, we know that the minimizer $p^* = \argmin_{q\in B} D(q \parallel p)$ lies on the boundary of $B$, $\Omega = \{q: \E_q [\Ec(X)] = \theta\}$.
+
+Using Lagrange Multipliers, we found
+\[p_x^* = \frac{1}{Z_{\lambda}} p_x  e^{\lambda \Ec(x)} \quad \forall x\]
+with
+\[Z_{\lambda} = \sum_{x=1}^{s} p_xe^{\lambda \Ec(x)}\]
+
+Now, we want to find $\lambda = (\lambda_1, \dots, \lambda_s)$ that satisfies
+\[\E_{p^*}[\Ec(X)] = \theta \iff \sum p_x^* \Ec(x) = \theta \iff \sum \frac{1}{Z_{\lambda}} p_x e^{\lambda \Ec(x)} \Ec(x) = \theta\]
+
+\begin{tbox}{\textbf{Proposition:}
+        \begin{enumerate}
+            \item $\frac{\partial}{\partial \lambda_k} \log Z_{\lambda} = \E_{\lambda}[\Ec_k(X)] \quad \forall k=1, \dots, c$
+            \item $\frac{\partial^2}{\partial \lambda_k \, \partial \lambda_l} \log Z_{\lambda} = \Cov_{\lambda} (\Ec_k(X), \Ec_l(X)) \quad \forall k,l$
+            \item $\log Z_{\lambda}$ is convex in $\lambda$ and, in general, strictly convex (unless the equations $\left\{\E_{p^*} \Ec_k(X) = \theta_k\right\}_{k=1}^c$ are redundant, i.e. $\not\exists b_1, \dots b_c \neq (0, \dots, 0)$)
+            \item Assuming (3), the function
+                  \[\log Z_{\lambda} - \sum_{k=1}^{c} \lambda_k \theta_k\]
+                  is in general strictly convex and is minimized when
+                  \[\E_{\lambda}[\Ec_k(X)] = \theta_k \quad \forall k\]
+                  (i.e. at exactly the $\lambda$ that we need to find)
+        \end{enumerate}
+    }
+    \emph{Proof:}
+
+    \begin{enumerate}
+        \item  \begin{align*}
+                  \frac{\partial }{\partial \lambda_k} \log Z_{\lambda} & = \frac{1}{Z_k} \cdot \frac{\partial }{\partial \lambda_k} Z_{\lambda}                                                                       \\
+                                                                        & = \frac{1}{Z_{\lambda}} \cdot \frac{\partial }{\partial \lambda_k} \left[\sum p_x e^{\lambda_1 \Ec_1(x) + \dots + \lambda_c \Ec_c(x)}\right] \\
+                                                                        & = \frac{1}{Z_{\lambda}} \cdot \sum_x p_x e^{\lambda_1 \Ec_1(x) + \dots + \lambda_c \Ec_c(x)} \cdot \Ec_k(x)                                  \\
+                                                                        & = \frac{1}{Z_{\lambda}}  \cdot \sum_x p_x \Ec_k(x) e^{\lambda \Ec(x)}                                                                        \\
+                                                                        & = \sum_x p_x^* \Ec_k(x)                                                                                                                      \\
+                                                                        & = \E_{p^*}[\Ec_k(X)] = \E_{\lambda}[\Ec_k(X)]
+              \end{align*}
+
+              \tbf{Remark:} We write $\E_{\lambda}$ instead of $\E_{p^*}$ just to emphasize that this is a function of $\lambda$
+
+        \item
+
+              \begin{exercise}
+                  \textbf{Exercise:}  Email the proof to oanh\_nguyen1@brown.edu for bonus points.
+              \end{exercise}
+
+              \begin{proof}
+                  \emph{Proof:}  In part 1, we showed that $\frac{\partial}{\partial \lambda_k} \log Z_{\lambda} = \E_{\lambda}[\Ec_k(X)]$. Hence, it suffices now to show
+                  \[\frac{\partial}{\partial \lambda_l} \E_{\lambda}[\Ec_k(X)] = \Cov_{\lambda}(\Ec_k(X), \Ec_l(X))\]
+
+                  \textcolor{red}{TODO}
+              \end{proof}
+
+        \item \[H(\lambda_1, \dots, \lambda_c) = \begin{pmatrix}
+                      \frac{\partial^2}{\partial \lambda_k\, \partial \lambda_l} \log Z_{\lambda}
+                  \end{pmatrix}_{c \times c}\]
+
+              We need to show $\forall v \neq \vec 0$,
+              \[v^T H v = \sum_{k, l}v_k v_l H_{kl} \geq 0 \implies \log_Z \text{ convex}\]
+
+              But
+              \begin{align*}
+                  \sum v_k v_l H_{kl} & = \sum v_k v_l \Cov(\Ec_k(X), \Ec_l(X))     \\
+                                      & = \Var\left(\sum v_k \Ec_k(X)\right) \geq 0
+              \end{align*}
+              since
+              \[\sum v_k v_l \Cov(Y_k, T_l) = \Var\left(\sum v_k y_k\right)\]
+
+    \end{enumerate}
+
+\end{tbox}
+
+\section{Feb 10}
+Let $B = \{q: \E_q[\Ec(X)] < \theta\}$. Suppose we have two contraints
+\begin{itemize}
+    \item $\E_{\hat p} [\Ec_1(X)] = \theta_1$
+    \item $\E_{\hat p} [\Ec_2(X)] = \theta_2$
+\end{itemize}
+and we know
+\begin{itemize}
+    \item $\E_p [\Ec_1(X)] > \theta_1$
+    \item $\E_p [\Ec_2(X)] > \theta_2$
+\end{itemize}
+
+Then we can tighten
+\[B = \{q: \E_q[\Ec_1(X]]< \theta_1, \; \E_q[\Ec_2(X)] > \theta_2\}\]
+which updates our partition of the space from:
+
+\begin{center}
+    \begin{tikzpicture}
+        \fill[opacity=0.3] plot coordinates {
+                (0, 0)
+                (2, 2)
+                (0, 2)
+            };
+
+        \draw[fill, red] (0.5, 1) circle (0.05) node[above] {$q$};
+        \draw (0, 0) -- (2, 2) node[right] {$B$};
+
+        \draw[fill, blue] (2, 0) circle (0.05) node[above] {$p$};
+    \end{tikzpicture}
+    \hspace{1cm}
+    \begin{tikzpicture}
+        \node at (0, 0) {};
+        \node at (0,1) {$\longrightarrow$};
+    \end{tikzpicture}
+    \hspace{1cm}
+    \begin{tikzpicture}
+        \fill[opacity=0.3] plot coordinates {
+                (0, 0)
+                (2, 2)
+                (3, 0)
+            };
+
+        \draw[dashed] (0, 0) -- (2, 2) -- (3, 0) -- cycle;
+
+        \node[left] at (1, 1) {$B$};
+        \node[below] at (2, 0) {$\E_q[\Ec_2(X)] > \theta_2$};
+        \node[right] at (3, 1) {$\E_q[\Ec_1(X)] < \theta_1$};
+
+        \draw[fill, red] (3, 0) circle (0.1);
+    \end{tikzpicture}
+\end{center}
+which tells us
+\[\Omega = \{q: \E_q[\Ec_1(X)] = \theta_1, \quad \E_q[\Ec_2(X)] = \theta_2\} \]
+
+We already know what to do if $p^* \in \Omega$, so consider just one constraint:
+\[\E_q[\Ec_2(X)] = \theta_2\]
+
+We can easily find $p_2^*$ WRT this constraint:
+\begin{align*}
+    B_2      & = \{q: \E_q[\Ec_2(X)] > \theta_2\}          \\
+    \Omega_2 & = \{q: \E_q[\Ec_2(X)] = \theta_2\}
+    p_2^*    & = \argmin_{q \in \Omega_2} D(q \parallel p)
+\end{align*}
+
+Further, we know if $p_2^* \in \bar B$, then $p^* = p_2^*$ and we are done.
+
+Otherwise, we can just try again using the first constraint to find $p_1^*$. If $p_1^* \in \bar B$, then $p^* = p_1^*$ and we are done.
+
+What if we get unlucky both times and $p_1^*, p_2^* \notin \bar B$?
+
+\begin{tbox}{\textbf{Claim:} Because of convexity, if $p_1^*, p_2^* \notin \bar B$, then $p^* \in \Omega$}
+    \emph{Proof:}
+
+    \begin{center}
+        \begin{tikzpicture}
+            \fill[opacity=0.3] plot coordinates {
+                    (0, 0)
+                    (1, 2)
+                    (2.4, 0)
+                };
+
+            \draw[name path=A] (4, 0) -- (0, 0)
+            node[pos=0.1, red] {$\times$}
+            node[pos=0.1, red, above] {$p_2$}
+            node[left] {$\Omega_2$};
+
+            \draw[name path=B] (3, -1) -- (1, 2)
+            node[pos=0.1, red] {$\times$}
+            node[pos=0.1, red, right] {$p_1$}
+            node[above] {$\partial B$};
+
+            \node at (1, 1) {$B$};
+
+            \fill [blue, name intersections={of=A and B, by=x}] (x) circle (2pt) node[above right] {$p^*$};
+        \end{tikzpicture}
+    \end{center}
+
+
+    WLOG, $p^* \in \Omega_1$ so let $\tilde p = [p^*, p_1^*] \cap \Omega \implies \tilde p \in \Omega$.
+    \begin{center}
+        \begin{tikzpicture}
+            \draw[name path=A] (4, 0) -- (0, 0)
+            node[pos=0, right] {$\{q: \E_q[\Ec_2(X)] = \theta_2\}$};
+
+            \draw[name path=B] (3, -1) -- (1, 2)
+            node[pos=0.7, red] {$\times$}
+            node[pos=0.7, red, above right] {$p^*$}
+            node[pos=0.1, red] {$\times$}
+            node[pos=0.1, red, above right] {$p_1$};
+
+            \fill [blue, name intersections={of=A and B, by=x}] (x) circle (2pt) node[above right] {$\tilde p$};
+
+        \end{tikzpicture}
+    \end{center}
+
+    Then the $\tilde p$ should have been $p^*$ (contradiction.)
+
+    Or
+    \[\tilde p = \lambda p^* + (1- \lambda)p_{\perp}^* \quad \lambda (0, 1)\]
+    so
+    \[D(\tilde p \parallel p) \leq \lambda D(p^* \parallel p) + (1-\lambda) D(p_{\perp}^* \parallel p)\]
+    but $D(p^* \parallel p)$ and $D(p_{\perp}^* \parallel p)$ are the smallest among the points while $D(\tilde p \parallel p)$ should be the largest. Contradiction.
+\end{tbox}
+
+\subsection{Information Point of View for Shannon Entropy}
+In the following section, let $\log = \log_2$
+
+Here, \tbf{Shannon Entropy} ``measures the minimal number of bits needed to encode a message optimally''.
+
+For example, let $X_1, \dots, X_n \sim \{1, 2\}$ with $p= (p_1, p_2)$ and $p_2 = 1-p_1$.
+
+As before, let $\hat p_1 = \frac{\#\{i: X_i = 1\}}{n}$ and $\hat p_2 = 1 - \hat p_1$.
+
+\tbf{Question:} What is the probability of any particular sequence? (say $\hat p_1 \approx p_1, \hat p_2 \approx p_2$)
+
+\emph{Answer:}
+\begin{align*}
+    \P(X_1= x_1, \dots, X_n = x_n) & = p_1^{\hat p_1 n} p_2^{\hat p_2 n}             \\
+                                   & \approx p_1^{p_1 n} p_2^{p_2 n}                 \\
+                                   & = 2^{n(\log p_1) p_1} \cdot 2^{n(\log p_2) p_2} \\
+                                   & = 2^{-nH(p)}
+\end{align*}
+and this makes some sense: if we have no information, we would expect the probability of any sequence to be $2^{-n}$.
+
+\section{Feb 12}
+
+Let $\{X_i\}_{i=1}^n \sim \{0, 1\}$ with $p = (p_0, p_1) = (p_0, 1 - p_0)$. The Shannon Entropy is
+\begin{align*}
+    H(p) & = -\sum p_x \log p_x                                \\
+         & = -p_0 \log p_0 - p_1 \log p_1                      \\
+         & = -p_0 \log p_0 - (1 - p_0) \log (1 - p_0) = F(p_0)
+\end{align*}
+for some function $F$.
+
+\begin{center}
+    \begin{tikzpicture}
+        \begin{axis}[
+                axis lines = middle,
+                xlabel = $p_0$,
+                ylabel = $H(p)$,
+                xtick={1/2, 1},
+                ytick={1},
+                xmin = 0, xmax = 1.5,
+                ymin = 0, ymax = 1.5,
+                clip=false,
+                axis equal
+            ]
+            \addplot[blue, domain=0:1.5] {-x * log2(x) - (1 - x) * log2(1 - x)};
+            \node at (axis cs: 0.5, 1) {$\bullet$};
+        \end{axis}
+    \end{tikzpicture}
+\end{center}
+
+What is the relationship between the Shannon Entropy and the KL-Divergence?
+
+\begin{align*}
+    D(p \parallel h) & = \sum p_x \log \frac{p_x}{h_x}         \\
+                     & = \sum p_x \log p_x - \sum p_x \log h_x \\
+                     & = -H(p) - \log \frac{1}{s}
+\end{align*}
+for $h \sim \text{Unif}(1, s)$. Hence, up to a constant, $H(p) \approx D(p \parallel \text{Unif}\{1, \dots, s\})$.
+
+And indeed this jusitifies that $H(p)$ has its max at $1/2$ when $p = (1/2, 1/2)$.
+
+This also explains what we found last class: we only need $2^{nH(p)}$ bits rather than $2^n$ because in the worst case, $H(p) = 1 \implies 2^{n\cdot 1} = 2^n$.
+
+\subsection{Source Coding}
+More generally, we can take $X = (X_1, \dots, X_n) \sim p$ on states $\{1, \dots, t\}$ for $t = 2^n$.
+
+Let $C: \{1, \dots, t\} \to \{0, 1\}^*$ be a \tbf{source code} where $\{0, 1\}^*$ is the set of finite non-empty strings of 0s and 1s.
+
+We let $\abs{C(x)}$ denote the length of the code. In general, we want $\abs{C(x)}$ to be small across different $x$.
+
+\tbf{Example:} A trivial code is the identity: $C(x) = x$ for all $x$. For $p = 1/2$, this is the best we can do.
+
+If, however, $p = (0.99, 0.01)$ we can do better in expectation.
+
+\tbf{Prefix:} A \emph{prefix code} is a code $C$ for which $C(x)$ is not a prefix for $C(\tilde x)$ for any $x \neq \tilde x$.
+
+\emph{Example:}
+
+\qquad \begin{tabular}{c|cc}
+    $x$ & $C(x)$ & $C'(x)$ \\ \hline
+    1   & 0      & 0       \\
+    2   & 1      & 10      \\
+    3   & 00     & 11      \\ \hline
+\end{tabular}
+
+Here, $C$ is not a prefix because under $C$, if we are trying to encode 0100, we do not know if it should be 120 or 1211. However, $C'$ is a prefix because there is no ambiguity.
+
+\tbf{Remark:} Being a prefix is not necessary for unique decoding. For example,
+
+\qquad \begin{tabular}{c|c}
+    $x$ & $C(x)$ \\ \hline
+    1   & 0      \\
+    2   & 01     \\
+    3   & 011    \\ \hline
+\end{tabular}
+
+is not a prefix but any string can be uniquely decoded by looking back.
+
+\tbf{Question:} Whaat is the minimal $(\abs{C(x)})_x$ (i.e. $C = \argmin \E_p \abs{C(x)} = \sum p_x \abs{C_x}$) where $C$ is a prefix code?
+
+If we simply return the message, every encoded message is of equal length so $C$ is a prefix code of expected length $n$. Can we do better?
+
+\begin{proposition}
+    \textbf{Proposition (Kraft-McMillan Inequality):} For all prefix codes $C$,
+    \[\sum_{x=1}^t 2^{-\abs{C(x)}} \leq 1\]
+    and for any code lengths $\ell_1, \dots, \ell_t$ such that
+    \[\sum_{x=1}^t 2^{-\ell_x} \leq 1\]
+    there exists a a prefix code $C$ with $\abs{C_x} = \ell_x$ (letting $C_x = C(x)$).
+\end{proposition}
+
+\emph{Example:} In the non-prefix example, we say $\ell_1 = 1, \ell_2 = 2, \ell_3 = 3$ so
+\[\sum_{x=1}^t 2^{-\ell_x} = 2^{-1} + 2^{-2} + 2^{-3} \leq 1\quad \checkmark \]
+
+We can visualize this as a tree:
+\begin{center}
+    \begin{tikzpicture}
+        \Tree [.{}
+                [.0 \node{00}; \node{01};]
+                [.1
+                        [.{10} \node{100}; \node{101};]
+                        [.{11} \node{110}; \node{111};]]
+        ]
+    \end{tikzpicture}
+\end{center}
+
+
+We will see next time that the optimal code $C^*$ satisfies $H(p) \leq \E\abs{C^*(X)} \leq H(p)$
 \end{document}
