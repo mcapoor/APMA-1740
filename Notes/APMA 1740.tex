@@ -991,4 +991,102 @@ We can visualize this as a tree:
 
 
 We will see next time that the optimal code $C^*$ satisfies $H(p) \leq \E\abs{C^*(X)} \leq H(p)$
+
+\section{Feb 14}
+\tbf{Motivation:} Let $p = (p_1, p_2)$ be a distribution on $\{0, 1\}$ ($s = 2$).
+
+Sample $(X_1, \dots, X_n)$ corresponding to $n$ bits. Hence, there are $2^n$ possible sequences.
+
+We can design a prefix code $C: \{0, 1\}^n \to \{0, 1\}^*$.
+
+\emph{Example:} For $n = 3$,
+
+\qquad\begin{tabular}{c|c}
+    $X_1X_2X_3$ & $C(X_1X_2X_3)$ \\ \hline
+    000         & 00             \\
+    001         & 01             \\
+    \vdots                       \\
+    111
+\end{tabular}
+
+with $\E_p[\abs{C_x}] \approx H(p)n$. And indeed this is a prefix since every image is the same length.
+
+We know that for the identity code, $C(x) = x$, $\E_p [\abs{C_{(X_1, \dots, X_n)}}] = n$.
+
+\begin{proposition}
+    \textbf{Theorem:} Let $\vec X \sim \vec p$. For the optimal code $C^* = \argmin_{C \text{ prefix}} \E_{\vec p} [\abs{C(X)}]$,
+    \[H(\vec p) \leq \abs{\E_{\vec p}} C^*(X) \leq H(\vec p ) + 1\]
+\end{proposition}
+
+\tbf{Remark: }In our example, $\vec X = (X_1, \dots, X_n), \quad X_i \iid p$ so
+\[H(\vec p) \leq \E_{\vec p} \abs{C(X)} \leq H(\vec p) + 1\]
+where $\vec p = p \otimes \dots \otimes p$.
+
+\begin{tbox}{\textbf{Claim:}
+        \begin{enumerate}
+            \item $H(\vec p) = nH(p)$.
+            \item $H(X, Y) = H(X) + H(Y)$ if $X, Y$ independent
+        \end{enumerate} }
+    \emph{Proof:}
+    1. Follows as a corollary from (2).
+
+    \div
+
+    2. Let $X$ take values $\{x_1, \dots, x_A\}$ and $Y$ take values $\{y_1, \dots, y_B\}$.
+
+    Then
+    \begin{align*}
+        H(X, Y) & = -\sum_{i=1}^{AB} p_{i} \log p_{i}                                                        \\
+                & = -\sum_{x=1}^A \sum_{y=1}^B p_{xy} \log p_{xy}                                            \\
+                & = -\sum_x \sum_y p_x q_y \log p_x q_y \qquad (X, Y \text{ independent})                    \\
+                & = -\sum_x \sum_y p_x q_y \log p_x + p_x q_y \log q_y                                       \\
+                & = -\sum_y p_y \sum_x p_x \log p_x - \sum_x p_x \sum_y q_y \log q_y \qquad (\text{Tonelli}) \\
+                & = \sum_y q_y H(x) + \sum_x p_x H(y)                                                        \\
+                & = H(X) + H(Y) \qed
+    \end{align*}
+\end{tbox}
+
+Hence,
+\[nH(p)\leq \E{\abs{C(X)}} \leq nH(p) + 1\]
+
+In particular, our propositions from earlier in the week follow immediately. Most importantly, we have confirmed that we indeed only need $2^{nH(p)}$ bits to encode a message.
+
+At last, we are ready to actually prove the theorem:
+
+\begin{tbox}{\textbf{Theorem:} Let $\vec X \sim \vec p$. For the optimal code $C^* = \argmin_{C \text{ prefix}} \E_{\vec p} [\abs{C(X)}]$,
+        \[H(\vec p) \leq \abs{\E_{\vec p}} C^*(X) \leq H(\vec p ) + 1\]}
+    \emph{Proof:} Let $X \sim p$.
+
+    \begin{enumerate}
+        \item $H(p) \leq \E_p \abs{C(X)}$
+
+              Let $\ell_x = \abs{C_x}$. Then
+              \begin{align*}
+                  \E\abs{C(X)} - H(p) & = \sum p_x \ell_x + \sum p_x \log p_x                                                       \\
+                                      & =  \sum p_x \log(2^{\ell_x} p_x)                                                            \\
+                                      & = \sum p_x \log \frac{p_x}{2^{-\ell_x}}                                                     \\
+                                      & = \sum p_x \log \frac{p_x}{2^{-\ell_x} \cdot \frac{\sum_y 2^{-\ell_y}}{\sum_y 2^{-\ell_y}}} \\
+              \end{align*}
+
+              Let $S = \sum_x 2^{-\ell_x}$. By Kraft-McMillan, $S \leq 1$ so
+
+              \begin{align}
+                   & = \sum_x p_x \log \frac{p_x}{q_x S}                   \\
+                   & = \sum_x p_x \log \frac{p_x}{q_x} - \sum_x p_x \log S \\
+                   & = D(p \parallel q) - \log S \geq 0
+              \end{align}
+
+        \item $\E\abs{C^*(X)} \leq H(p) + 1$.
+
+              It suffices to show $\exists C$ prefix such that
+              \[\E_p\abs{C(X)} \leq H(p) + 1\]
+
+              In fact, our Part I gives us a place to start: We would like to find $\ell_x$ such that $q_x \propto 2^{-\ell_x} \approx p_x$. Hence, let $\ell_x = \left\lceil \log_2 \frac{1}{p_x} \right\rceil$.
+
+              Now, we just need to show $\exists C$ prefix such that $\ell_x = \abs{C_x}$. But by Kraft-Mcmillan, it suffices to show $\sum_x 2^{-\ell_x} \leq 1$.
+
+              With a little more work, we can show this exactly. Heuristically, if we did not need to round to get an integer $\ell_x$, we would have $H(p)$ exactly. Rounding, we get $H(p) + 1$.
+    \end{enumerate}
+\end{tbox}
+
 \end{document}
