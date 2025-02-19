@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}
+\documentclass[12pt]{report}
 \usepackage[utf8]{inputenc}
 \usepackage{geometry}
 \geometry{letterpaper, margin=0.25in}
@@ -58,6 +58,8 @@
 
 \newcommand{\abs}[1]{\left\vert #1 \right\vert}
 \newcommand{\norm}[1]{\left\vert\left\vert #1 \right\vert\right\vert}
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
 
 \newcommand{\Var}{\mathbb{V}}
 \newcommand{\Cov}{\text{Cov}\,}
@@ -69,6 +71,7 @@
 \newcommand{\A}{\mathcal{A}}
 \newcommand{\F}{\mathcal{F}}
 \newcommand{\Cc}{\mathcal{C}}
+\newcommand{\Nc}{\mathcal{N}}
 \newcommand{\B}{\mathcal{B}}
 \newcommand{\M}{\mathcal{M}}
 \newcommand{\X}{\chi}
@@ -628,7 +631,7 @@ Now let's prove the claim:
 \subsection{Back to Gibbs' Heat Bath}
 Recall the original motivating example where $X_1, \dots, X_n \sim p$, and $\frac{1}{n} \sum_{i=1}^{n} \Ec(X_i) = \theta$.
 
-Previosuly, we showed that $\theta = \frac{1}{n} \sum_{i=1}^{n} \Ec(X_i) = \E_{\hat p} [\Ec(X)]$.
+Previously, we showed that $\theta = \frac{1}{n} \sum_{i=1}^{n} \Ec(X_i) = \E_{\hat p} [\Ec(X)]$.
 
 Now consider the set $B = \{q \; | \; \E_q [\Ec(X)] > \theta\}$ and define $\Omega = \{q: \E_q [\Ec(X)] = \theta\}$.
 
@@ -646,7 +649,7 @@ Now consider the set $B = \{q \; | \; \E_q [\Ec(X)] > \theta\}$ and define $\Ome
         \draw[fill, blue] (3, 0) circle (0.05) node[above] {$p$};
     \end{tikzpicture}
 \end{center}
-Imagine we observe some sample with energy higher than expected (i.e. $q \in B$). What is the probability of this occuring?
+Imagine we observe some sample with energy higher than expected (i.e. $q \in B$). What is the probability of this occurring?
 
 By Sanov, in order to find $\inf_{q \in B} D(q \parallel p)$, it suffices to find $p^*$ such that $D(p^* \parallel p) = \inf_{q \in B} D(q \parallel p)$.
 
@@ -742,7 +745,7 @@ Now, we want to find $\lambda = (\lambda_1, \dots, \lambda_s)$ that satisfies
 \end{tbox}
 
 \section{Feb 10}
-Let $B = \{q: \E_q[\Ec(X)] < \theta\}$. Suppose we have two contraints
+Let $B = \{q: \E_q[\Ec(X)] < \theta\}$. Suppose we have two constraints
 \begin{itemize}
     \item $\E_{\hat p} [\Ec_1(X)] = \theta_1$
     \item $\E_{\hat p} [\Ec_2(X)] = \theta_2$
@@ -923,7 +926,7 @@ What is the relationship between the Shannon Entropy and the KL-Divergence?
 \end{align*}
 for $h \sim \text{Unif}(1, s)$. Hence, up to a constant, $H(p) \approx D(p \parallel \text{Unif}\{1, \dots, s\})$.
 
-And indeed this jusitifies that $H(p)$ has its max at $1/2$ when $p = (1/2, 1/2)$.
+And indeed this justifies that $H(p)$ has its max at $1/2$ when $p = (1/2, 1/2)$.
 
 This also explains what we found last class: we only need $2^{nH(p)}$ bits rather than $2^n$ because in the worst case, $H(p) = 1 \implies 2^{n\cdot 1} = 2^n$.
 
@@ -962,7 +965,7 @@ Here, $C$ is not a prefix because under $C$, if we are trying to encode 0100, we
 
 is not a prefix but any string can be uniquely decoded by looking back.
 
-\tbf{Question:} Whaat is the minimal $(\abs{C(x)})_x$ (i.e. $C = \argmin \E_p \abs{C(x)} = \sum p_x \abs{C_x}$) where $C$ is a prefix code?
+\tbf{Question:} What is the minimal $(\abs{C(x)})_x$ (i.e. $C = \argmin \E_p \abs{C(x)} = \sum p_x \abs{C_x}$) where $C$ is a prefix code?
 
 If we simply return the message, every encoded message is of equal length so $C$ is a prefix code of expected length $n$. Can we do better?
 
@@ -1089,4 +1092,138 @@ At last, we are ready to actually prove the theorem:
     \end{enumerate}
 \end{tbox}
 
+\section{Feb 19}
+\tbf{Example:} $s = 3$ with $p = (1/2, 1/4, 1/4)$.
+
+Then
+\[H(p) = \sum p_x \log \frac{1}{p_x} = \frac{1}{2} \log 2 + \frac{1}{4} \log 4 + \frac{1}{4} \log 4 = \frac{3}{2}\]
+
+If we want to encode $X_1\cdots X_n$, we have $3^n$ possible sequences. We would naturally like to design a prefix code $C$ with length $\ceil{\log_2 \frac{1}{p_x}}$.
+
+One way is via block coding. We first choose the lengths:
+
+\qquad \begin{tabular}{ccc}
+    $X_1$ & $p_x$ & $\ell_x = \ceil{\log_2 \frac{1}{p_x}}$ \\\hline
+    $1$   & $1/2$ & $1$                                    \\
+    $2$   & $1/4$ & $2$                                    \\
+    $3$   & $1/4$ & $2$
+\end{tabular}
+
+If we say $C(1) = 0$, then we can prune the resulting tree for all other encodings:
+\begin{center}
+    \begin{tikzpicture}
+        \Tree [.{}
+                [.0 \node[red]{00}; \node[red]{01};]
+                [.1 \node{10}; \node{11};]
+        ]
+    \end{tikzpicture}
+\end{center}
+which naturally leads us to a full prefix code:
+
+\qquad \begin{tabular}{ccc}
+    $X_1$ & $C(x)$ \\\hline
+    1     & 0      \\
+    2     & 10     \\
+    3     & 11
+\end{tabular}
+
+\tbf{Example:} Now consider $s = 3$, $p = (1/3, 1/3, 1/3)$. Then $H(p) = \log 3 \approx 1.58$. So
+
+For $n = 1$,
+
+\qquad \begin{tabular}{cccc}
+    $x$ & $p(x)$ & $\ell_x$               & $C(x)$ \\\hline
+    $1$ & $1/3$  & $\ceil{\log_2(3)} = 2$ & 0      \\
+    $2$ & $1/3$  & $2$                    & 10     \\
+    $3$ & $1/3$  & $2$                    & 11
+\end{tabular}
+
+with
+\[\E\abs{C_x} = \frac{2}{3}(2) + \frac{1}{3}(1) = \frac{5}{3}\]
+
+But with $n=2$, we have $3^2 = 9$ possible sequences. Looking at the tree, we can choose a reasonable minimal encoding:
+
+\begin{center}
+    \begin{tikzpicture}
+        \Tree [.{}
+                [.{1}
+                        [.{3} [.\node[blue]{7}; \node{15}; \node{16};]
+                                [.\node[blue]{8}; \node{17}; \node{18};]]
+                        [.{4} [.\node[blue]{9}; \node{19}; \node{20};]
+                                [.\node[blue]{10}; \node{21}; \node{22};]]]
+                [.{2}
+                        [.{5} [.\node[blue]{11}; \node{23}; \node{24};]
+                                [.\node[blue]{12}; \node{25}; \node{26};]]
+                        [.{6} [.\node[blue]{13}; \node{27}; \node{28};]
+                                [.{14} \node[blue]{29}; \node[blue]{30};]]]]
+    \end{tikzpicture}
+\end{center}
+
+which gives
+\qquad \begin{tabular}{cccc}
+    $x$ & $p(x)$ & $\ell_x$ & $C(x)$ \\\hline
+    11  & $1/3$  & 4        & 000    \\
+    12  &        &          & 001    \\
+    13  &        &          & \vdots \\
+    21                               \\
+    22                               \\
+    23                               \\
+    31  &        &          & 110    \\
+    32  &        &          & 1110   \\
+    33  &        &          & 1111
+\end{tabular}
+
+which has
+\[\E\abs{C_x} = \frac{7}{9}(3) + \frac{2}{9}(4) \approx 3.222 = 1.611 \cdot 2\]
+which means we use 1.611 bits per signal.
+
+If $n \to \infty$, then the best prefix code has an average $H(p)$ bits per symbol.
+
+\chapter{Statistical Inference}
+\section{Feb 19}
+\subsection{Probability Estimation}
+\tbf{Motivation:} Let $X_1, X_2, \, \dots,\, X_n \iid P_{\theta}$. We want to estimate $\theta$.
+
+\emph{Example:} If $X_1, \dots, X_n \sim \mathcal{N}(\mu, \sigma^2)$, then $\theta = (\mu, \sigma)$.
+
+\tbf{Unbiased Estimation:} Suppose $\hat \theta = \hat \theta(x_1, \dots, x_n)$ is an estimation of $\theta$. If $\E[\hat \theta] = \theta$, we say $\hat \theta$ is \emph{unbiased.}
+
+\tbf{Example:} Let $X_1, \dots, X_n \sim \Nc(\mu, \sigma^2)$.
+\begin{itemize}
+    \item $\hat \mu = \frac{1}{n}(X_1 + \dots + X_n)$ is unbiased since
+          \[\E[\hat \mu] = \frac{1}{n} \sum \E[X_i] = \frac{1}{n}(n)(\mu) = \mu\]
+    \item What is an unbiased estimator for $\sigma^2$? We know $\sigma^2 = \E[X^2] - (\E X)^2 = \E[(X - \mu)^2]$ so
+          \[\hat \sigma^2 = \frac{1}{n-1} \sum_{i=1}^{n} (X_i - \hat \mu)^2 \]
+
+    \item In fact, $\hat{\hat{\sigma^2}} = \frac{1}{n} \sum_{i=1}^n (X_i - \hat \mu)^2$ is a biased estimator:
+
+          \begin{proof}
+              \emph{Proof:} WLOG $\mu = 0$ (else $Y_i = X_i - \mu \sim \Nc(0, \sigma^2) \implies \hat \mu_X = \hat \mu_Y - \mu$).
+
+              Then $\sigma^2 = \E[X^2]$ so
+              \begin{align*}
+                  \hat \mu          & = \frac{1}{n} \sum X_i                                                                                               \\
+                  \hat \sigma^2     & = \frac{1}{n-1} \sum (X_i - \hat \mu)^2
+                  \E[\hat \sigma^2] & = \E\left[\frac{1}{n-1} \sum (X_i - \hat \mu)^2\right]                                                               \\
+                                    & = \frac{1}{n-1} \sum \E[(X_i - \hat \mu)^2]                                                                          \\
+                                    & = \frac{n}{n-1} \E[(X_i - \hat \mu)^2]                                                                               \\
+                                    & = \frac{n}{n-1} \E\left[\left(X_i - \frac{X_1 + \dots + X_n}{n}\right)^2\right]                                      \\
+                                    & = \E\left[\left(\frac{n-1}{n}X_1 - \frac{1}{n} X_2 \cdots - \frac{1}{n} X_n\right)^2\right]                          \\
+                                    & = \E\left[\left(\frac{n-1}{n}\right)^2 X_1^2 + \sum_{i=2}^{n} \frac{1}{n^2} X_1^2 + 2 \sum_{i\neq j} X_i X_j \right] \\
+                                    & = (\frac{n-1}{n})^2 \E[X_1^2] + \frac{n-1}{n^2} \E[X_1^2]                                                            \\
+                                    & = \frac{(n-1)^2}{n^2} \sigma^2                                                                                       \\
+                                    & = \frac{n-1}{n} \sigma^2
+              \end{align*}
+              since for $i \neq j$, $\E[X_i X_j] \overset{X_i \perp X_j} (\E X_i)(\E X_j)$
+          \end{proof}
+\end{itemize}
+
+\tbf{Consistent:} We say $\hat \theta_n$ is \emph{consistent} if $\hat \theta_n \longrightarrow \theta$ in some sense as $n \to\infty$. For example,
+\begin{itemize}
+    \item $\hat \theta_n \overset{a.s.}{\longrightarrow} \theta \implies \P(\lim_{n \to \infty} \hat \theta_n = \theta) = 1$
+    \item $\hat \theta_n \overset{P}{\longrightarrow} \theta \implies \forall \ep > 0, \P(\abs{\hat \theta_n - \theta} > \ep) \overset{n\to\infty}{\longrightarrow} 0$
+    \item $\hat \theta \overset{\text{mean square}}{\longrightarrow} \theta \implies \E[(\hat \theta_n - \theta)^2] \to 0$.
+\end{itemize}
+
+Is $\hat \sigma^2$ consistent in any sense? As we will see, yes. But not trivially so.
 \end{document}
