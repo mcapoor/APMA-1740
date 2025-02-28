@@ -61,7 +61,7 @@
 \newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
 \newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
 
-\newcommand{\Var}{\mathbb{V}}
+\newcommand{\Var}{\text{Var}\,}
 \newcommand{\Cov}{\text{Cov}\,}
 
 \newcommand{\mfX}{\mathfrak{X}}
@@ -94,6 +94,10 @@
 
 \newcommand{\iid}{\overset{\text{iid}}{\sim}}
 \newcommand*{\tbf}[1]{\ifmmode\mathbf{#1}\else\textbf{#1}\fi}
+
+\newcommand{\MSE}{\text{MSE}\,}
+\newcommand{\ISE}{\text{ISE}\,}
+
 
 \DeclareMathOperator*{\argmax}{\arg\max}
 \DeclareMathOperator*{\argmin}{\arg\min}
@@ -1214,7 +1218,7 @@ If $n \to \infty$, then the best prefix code has an average $H(p)$ bits per symb
                                     & = \frac{(n-1)^2}{n^2} \sigma^2                                                                                       \\
                                     & = \frac{n-1}{n} \sigma^2
               \end{align*}
-              since for $i \neq j$, $\E[X_i X_j] \overset{X_i \perp X_j} (\E X_i)(\E X_j)$
+              since for $i \neq j$, $\E[X_i X_j] \overset{X_i \perp X_j}{=} (\E X_i)(\E X_j)$
           \end{proof}
 \end{itemize}
 
@@ -1226,4 +1230,335 @@ If $n \to \infty$, then the best prefix code has an average $H(p)$ bits per symb
 \end{itemize}
 
 Is $\hat \sigma^2$ consistent in any sense? As we will see, yes. But not trivially so.
+
+\section{Feb 21}
+
+\tbf{Recall:} Let $\theta = \sigma^2$ and take $X_1, X_2, \, \dots,\, X_n \iid p$. Then
+\[S_n^2 = \frac{1}{n-1} \sum_{i=1}^{n} (X_i - \bar X)^2\]
+is an unbiased estimator for $\sigma^2$.
+
+Further,
+\[\hat \sigma_n^2 = \frac{1}{n} \sum_{i=1}^{n} (X_i - \bar X)^2 \]
+is a biased estimator for $\sigma^2$.
+
+\tbf{Mean Squared Error (MSE):} $\MSE(\hat \theta_n) = \E \abs{\hat \theta_n - \theta}^2$.
+
+Notice,
+\begin{align*}
+    \MSE(\hat \theta) & = \E(\hat \theta_n - \theta)^2                                                                                           \\
+                      & = \E(\underbrace{\hat \theta_n - \E \hat \theta_n}_{a} + \underbrace{\E \hat \theta_n + \E\hat \theta_n - \theta}_{b})^2 \\
+                      & = \E (a + b^2)                                                                                                           \\
+                      & = \E a^2 + 2b \underbrace{\E a}_{0} + \underbrace{b^2}_{\text{bias}^2}                                                   \\
+                      & = \Var(\hat \theta) + \text{bias}^2
+\end{align*}
+
+\tbf{Example:} Calculate $\MSE(S_n^2)$ vs. $\MSE(\hat \sigma_n^2)$. For simplicity, assume $\mu = 0$,$\sigma^2 = 1$ and $\E_p X^4 = 3$.
+
+\begin{align*}
+    \MSE(S_n^2) & = \Var(S_n^2) + \text{bias}^2                         \\
+                & = \Var(S_n^2) \qquad \text{since $S_n^2$ is unbiased} \\
+                & = \E[(S_n^2 - \E S_n^2)^2]                            \\
+                & = \E[(S_n^2 - \sigma^2)^2]                            \\
+                & = \E[(S_n^2 - 1)^2]                                   \\
+                & = \E[S_n^4] - 2\E[S_n^2] + 1                          \\
+                & = \E[S_n^4] - 2 + 1                                   \\
+                & = \E[S_n^4] - 1
+\end{align*}
+
+We know
+\begin{align*}
+    S_n^2 & = \frac{1}{n-1} \left(\sum (X_i - \frac{\sum X_j}{n})\right)^2                                 \\
+          & = \frac{1}{n-1} \sum_{i=1}^n \left(\frac{n-1}{n} X_i - \frac{1}{n} \sum_{j\neq i} X_j\right)^2
+\end{align*}
+
+We want
+\begin{align*}
+    \E[S_n^4] & = \frac{1}{(n-1)^2} \E\left[\sum_i \left(\frac{n-1}{n} X_i - \frac{1}{n} \sum_{j\neq i} X_j\right)^2\right]^2
+\end{align*}
+up to coefficients, we will only have $X_i^4, X_i^3X_j, X_i^2X_j^2, X_i^2X_jX_k, X_iX_jX_kX_l$ terms in the expansion.
+
+Under expectation, however, only the $X_i^4$ and $X_i^2 X_j^2$ terms will survive.
+
+After a little more work, we find
+\begin{align*}
+    \MSE(S_n^2)           & = \frac{2}{n -1} \sigma^4  \\
+    \MSE(\hat \sigma_n^2) & = \frac{2n-1}{n^2}\sigma^4
+\end{align*}
+but then $\MSE(\hat \sigma_n^2) < \MSE(S_n^2)$ so even though it is biased, it is a better estimator (in the sense of minimizing MSE).
+
+\subsection{Nonparametric Estimation}
+\tbf{Example:} Let $X_1, X_2, \, \dots,\, X_n \iid p$. We want to estimate $p$.
+
+Suppose we have one observation $\hat p_x = \frac{1}{n} \#\{i: X_i = x\}$. How good an estimator is this?
+
+First, is it unbiased? We know that for a set $B$,
+\[\hat p(B) = \frac{1}{n}\cdot \#\{i: X_i \in B\} = \sum_{x \in B} \hat p_x\]
+and
+\[\E[\hat p(B)] = \frac{1}{n} \sum_i \E[\ind_{X_i \in B}] = \frac{1}{n} \sum_i p(B) = p(B)\]
+so $\hat p_x$ is unbiased.
+
+Next, is it consistent? That is, for $B$ measurable, does $\hat p_n(B) \to p(B)$ in some sense?
+
+By LLN,
+\[\hat p_n(B) = \frac{1}{n} \sum_i \ind_{X_i \in B} = \frac{1}{n} \sum_i Y_i \overset{a.s.}{\longrightarrow}\E Y = \E \ind_{X_i \in B} = \P(X_i \in B) = p(B)\]
+
+\begin{exercise}
+    \textbf{Exercise:} In the above proof, we depended on $B$ being fixed. Here we show that this condition was necessary.
+
+    Let $p = \Nc(0, 1)$. For all $n$, show that there exists a set $B_n(X_1, \dots, X_n)$ such that $\hat p_n(B_n)$ is far from $p(B_n)$.
+\end{exercise}
+
+\section{Feb 24}
+\tbf{Motivation:} Let $f$ be the density of $p$. We want to estimate $f$. We can approximate $\hat p$ but this is discrete so we cannot have a continuous $\hat f$.
+
+Formally, how can we approximate the Dirac measure $\delta_a(A) = \ind_{a \in A}$ by a continuous measure?
+
+\subsection{Kernel Density Estimation}
+
+\tbf{Density Function:} a function $k$ satisfying
+\begin{enumerate}
+    \item $k(x) \geq 0$
+    \item $\int xk(x)\; dx = 0$
+    \item $\int x^2 k(x)\; dx = 1$
+\end{enumerate}
+i.e $Y \sim k \implies \E Y = 0 \land \Var Y =1$.
+
+\emph{Example:} $k(x) = \frac{1}{\sqrt{2\pi}} e^{-\frac{x^2}{2}}$
+
+\emph{Example:} We want to approximate $\delta_0$. For $Z = 0$, we know $\delta_0 = \text{dist}(Z)$.
+
+One approach is to approximate $Z$ by $Z + Y$ where $Y$ is continuous (hence $\E Y =0$) and therefore $Z + Y$ is continuous.
+
+A natural solution is $Y_{\ep} \sim \Nc(0, \ep)$ for $\ep \ll 1$. Notice, $Y_0 \sim \Nc(0, 1) \implies \ep Y_0 \sim \Nc(0, \ep^2)$.
+
+In general, if $Y \sim k$, what is the density of $\ep Y$?
+
+We can consider the CDF:
+\begin{align*}
+    F_Y(x)       & = \P(Y \leq x) = int_{-\infty}^{x} k(t)\; dt                                                \\
+    F_{\ep Y}(x) & = \P(\ep Y \leq x) = \P\left(Y \leq \frac{x}{\ep}\right) = \int_{-\infty}^{x/\ep} k(s)\; ds \\
+                 & \overset{s=t/\ep}{=} \int_{-\infty}^x k\left(\frac{t}{\ep}\right) \frac{dt}{\ep}            \\
+                 & \implies k_{\ep}(t) = \frac{1}{\ep} k\left(\frac{t}{\ep}\right)
+\end{align*}
+
+\tbf{Definition:} for each \tbf{smoothing parameter} $w$ (aka bandwidth),
+\[k_w(x) = \frac{1}{w} k\left(\frac{x}{w}\right) \]
+
+\begin{center}
+    \begin{tikzpicture}
+        \begin{axis}[
+                width=0.3\textwidth,
+                axis lines=middle,
+                no markers,
+                xtick={-2, -0.5, 0, 0.5, 2},
+                ytick=\empty,
+                xticklabels={$-1$, $-w$, {}, $w$, $1$},
+                clip=false,
+                xlabel={},
+                ylabel={},
+                domain=-3:3,
+                ymin=0, ymax=2,
+                xmin= -3, xmax=3,
+                view = {0}{90}
+            ]
+            \addplot[blue, thick] {exp(-x^2)} node[right] {$Y \sim k$};
+            \addplot[red, thick, samples=40] {1.5*exp(-4*x^2)} node[pos=0.6, right] {$wY \sim k_w$};
+
+        \end{axis}
+    \end{tikzpicture}
+\end{center}
+
+Now, our goal is to find the optimal $w$ to approximate $Z(\sim \delta_0)$ by $Z + Y_w$.
+
+Correspondingly, we approximate $f(x)$ by
+\[\hat f(x) = \hat f_{n, w}(x, X_1, \dots, X_n) = \frac{1}{n} \sum_{i=1}^n k_w(x - X_i)\]
+
+\begin{center}
+    \begin{tikzpicture}
+        \begin{axis}[
+                width=0.3\textwidth,
+                axis lines=middle,
+                no markers,
+                xtick={1, 3, 5},
+                ytick=\empty,
+                xticklabels={$x_1$, $x_2$, $x_3$},
+                clip=false,
+                xlabel={$x$},
+                ylabel={$y$},
+                domain=0:8,
+                ymin=0, ymax=2,
+                xmin=0, xmax=8,
+                samples=50,
+                view = {0}{90}
+            ]
+            \addplot[blue, thick] {exp(-2*(x-1)^2)};
+            \addplot[red, thick] {exp(-2*(x-3)^2)};
+            \addplot[green, thick] {exp(-2*(x-5)^2)};
+        \end{axis}
+    \end{tikzpicture}
+\end{center}
+
+Our plan is to use $\MSE = \text{bias}^2 + \text{variance}$ as
+\begin{center}
+    \begin{tabular}{c|cc}
+        $w\searrow 0$      & $\text{bias} \searrow$ & $\text{variance} \nearrow$ \\
+        $w\nearrow \infty$ & $\text{bias} \nearrow$ & $\text{variance} \searrow$
+    \end{tabular}
+\end{center}
+
+\tbf{Integrated Square Error (ISE):}
+\[\ISE = \int_{\R} \abs{\hat f_n(x, X_1, \dots, X_n) - f(x)}^2\; dx\]
+
+Since this is a random variable, we can also define \emph{mean integrated square error}.
+
+\tbf{Mean Integrated Square ERROR (MISE):}
+\begin{align*}
+    \text{MISE} = \E[\ISE] & = \int_{\R} \E\abs{\hat f(x, X_1, \dots, X_n) - f(x)}^2\; dx                                                                                                     \\
+                           & = \int_{\R} \E\abs{\hat f(x, X_{1:n}) - \E[\hat f_n(x, X_{1:n})] + \E[\hat f_n(x, X_{1:n})]- f(x)}^2\; dx                                                        \\
+                           & =\int_{\R} \abs{\E \hat f_n(x, X_{1:n}) - f(x)}^2\; dx + \int_{\R} \E\abs{\hat f_n(x, X_{1:n}) - \E[\hat f_n(x, X_{1:n})]}^2\; dx                                \\
+                           & = \int_{\R} \underbrace{\abs{\E \hat f_n(x, X_{1:n}) - f(x)}^2}_{\text{bias}^2}\; dx + \int_{\R} \underbrace{\Var[\hat f_n(x, X_{1:n})]}_{\text{variation}}\; dx
+\end{align*}
+
+We can apply this formula to the kernel density estimator so we have bias:
+\begin{align*}
+    B_{n, w}(x) & = \E[\hat f_n(x, X_1, \dots, X_n)] - f(x)                         \\
+                & = \frac{1}{n} \sum_{i=1}^n \E[k_w(x - X_i)] - f(x)                \\
+                & = \frac{1}{n} \sum_{i=1}^n \int_{\R} f(t) k_w(x - t) \; dt - f(x) \\
+                & = \int_{\R} f(t) k_w(x - t) \; dt - f(x)
+\end{align*}
+
+\section{Feb 26}
+
+\tbf{Recall:} For a continuous density $f$ with $X_1, \dots, X_n \iid f$, we would like to estimate $f$ but our normal method $\hat p_n = \frac{1}{n} \sum_{i=1}^n \delta_{X_i}$ is discrete, hence insufficient.
+
+Hence, we introduce the \emph{Kernel Density Estimator}:
+\[\hat f_{n, w}(x, X_1, \dots, X_n) = \frac{1}{n} \sum_{i=1}^n k_w(x - X_i)\]
+where
+\[k_w(t) = \frac{1}{w} k(\frac{t}{w}), \quad k \text{ some density}\]
+is parameterized by the bandwidth $w$.
+
+\tbf{Remark:} Above, we are using the Dirac Measure $\delta_x(A) = \begin{cases}
+        1 & \text{if } x \in A \\
+        0 & \text{otherwise}
+    \end{cases}$ instead of the indicator function ($\ind: \R \to \R$) because we need a measure and not a function.
+
+\tbf{Goal:} Find the ``optimal'' $w$.
+
+We introduced the \emph{Integrated Square Error} (ISE), $\int_x \abs{\hat f(x) - f(x)}^2\; dx$ and the \emph{Mean Integrated Square Error} (MISE)
+\[\text{MISE} = \E[\text{ISE}]= \int_x [(\text{bias}(x))^2 + \Var(x)]\; dx\]
+where
+\begin{align*}
+    \text{bias(x)} & = \E[\hat f(x)] - f(x)                            \\
+    \E[\hat f(x)]  & = \frac{1}{n} \sum_{i=1}^n \E_{X_i}[k_w(x - X_i)] \\
+                   & = \E[k_w(x - X_1)] \qquad (X_i \iid f)            \\
+                   & = \int_{\R} f(t) k_w(x - t)\; dt
+\end{align*}
+
+\tbf{Convolution:} Let $Z \sim f$ and $Y \sim g$ be independent. Then
+\[Z + Y \sim (f \star g)(x) = \int_{\R} f(t)\; g(x - t)\; dt\]
+
+Hence,
+\[\E[\hat f(x)] = (f \star k_w)(x)\]
+which means that $\E[\hat f]$ is the density of $Z + Y_w$ where $Z \perp Y_w$ and $Z \sim f$ and $Y_w \sim k_w$.
+
+What does this tell us about the behavior?
+\begin{itemize}
+    \item For $Y \sim k$, $Y_w \sim wY$ so $\E[\hat f] \to f$ as $w \to 0$.
+    \item As $w \to \infty$, our support becomes infinitely large so $\E[\hat f] \to 0$.
+\end{itemize}
+
+Hence,
+\[(\text{bias}(x))^2 = (\E[\hat f(x)] - f(x))^2 = \begin{cases}
+        0      & w\to 0      \\
+        f^2(x) & w\to \infty
+    \end{cases}\]
+
+Now, let's calculate the variance term:
+
+\begin{align*}
+    \Var(x) & = \Var(\hat f(x))                                                                                              \\
+            & = \Var\left(\frac{1}{n} \sum_{i=1}^n k_w(x - X_i)\right)                                                       \\
+            & = \frac{1}{n^2} \sum \Var(k_w(x- X_i)) \qquad (\text{independence})                                            \\
+            & = \frac{1}{n}\Var(k_w(x - X_i)) \qquad (\text{identically distributed})                                        \\
+            & = \underbrace{\frac{1}{n}\E[(k_w(x- X_i))^2]}_{V^{(1)}} - \underbrace{\frac{1}{n}[\E[k_w(x-x_i)]]}_{V^{(2)}}^2
+\end{align*}
+
+From our previous work,
+\[V^{(2)} = \frac{1}{n} \mathcal{I}^2 \to \begin{cases}
+        \frac{1}{n} f^2(x) & w\to 0      \\
+        0                  & w\to \infty
+    \end{cases}\]
+and
+\begin{align*}
+    V^{(1)} & = \frac{1}{n} \int f(g) k^2_w(x - t)\; dt                                           \\
+            & = \frac{1}{n} \frac{1}{w}\int f(t) \frac{1}{w} k^2\left(\frac{x - t}{w}\right)\; dt \\
+            & = \frac{1}{n} \frac{1}{w} \int f(ws + t) k^2(s)\; ds \qquad (s = \frac{x - t}{w})   \\
+            & \to \begin{cases}
+                      \infty & w\to 0      \\
+                      0      & w\to \infty
+                  \end{cases}
+\end{align*}
+since the constant $\frac{1}{w}$ term dominates the bounded $f, k$.
+
+\section{Feb 28}
+
+\begin{proposition}
+    \textbf{Theorem:} Assume $f$ and $k$ smooth. Then as $w \to 0$,
+    \[\text{MISE}_{n, w} = \underbrace{\alpha w^4}_{\text{bias}} + \underbrace{\frac{\beta}{nw}}_{\text{variance}} + \text{error}\]
+\end{proposition}
+
+How do we choose $w$? Ignoring $\alpha, \beta$, it makes sense we want to minimize MISE:
+\[(w^4 + \frac{1}{nw})' = 4w^3 - \frac{1}{nw^2} = 0 \implies w^5 \propto \frac{1}{n}  \implies w \propto n^{-1/5} \]
+
+This is \tbf{Sylverman's Rule of Thumb:} up to unknown bias and variance, choose $w = n^{-1/5}$.
+
+However, assuming we do not know $\alpha, \beta$, this is not a very good estimate -- it does not even depend on the density $f$! Can we do better?
+
+Recall the setup: $X_1, X_2, \, \dots,\, X_n \iid f$ with estimator
+\[\hat f_{n, w}(x) = \frac{1}{n} \sum_{i=1}^n k_w(x - X_i)\]
+
+We want to find $w$. Last time, we looked at the MISE. This time, consider only the ISE. Our goal is to minimize:
+\begin{align*}
+    \text{ISE} & = \int_x \abs{\hat f_{n, w}(x) - f(x)}^2\; dx                     \\
+               & = \int \hat f_{n, w}(x) - 2\int \hat f \cdot f + \int f^2(x)\; dx
+\end{align*}
+
+Define
+\begin{align*}
+    I & = \int_x \hat f_{n, w}(x) \cdot f(x)\; dx                                                                               \\
+      & = \E_{X_{n+1} \sim f}[\hat f_{n, w}(X_{n+1})] \qquad (X_{1:n} \iid f)                                                   \\
+      & = \E[\hat f_{n, w}(X_{n+1}; X_1, \dots, X_n) ]                                                                          \\
+      & \approx \E[\hat f_{n-1, w}(X_{n}; X_1, \dots, X_{n-1})]                                                                 \\
+      & \approx \frac{1}{n} \sum_{i=1}^n \E[\hat f_{n- 1, w}(X_i; i^X)] \qquad (i^X = X_1, \dots, X_{i-1}, X_{i+1}, \dots, X_n) \\
+      & = \frac{1}{n} \sum_{i=1}^n \hat f_{n-1, w}^{(i)}(X_i)
+\end{align*}
+
+We call this the \tbf{cross-validation} (leave-one-out) estimator.
+
+Since the last term does not depend on $w$, it suffices to find
+\[\argmin_w \hat J(w) = \int \hat f_{n, w}(x)^2 - 2 \frac{1}{n} \sum_{i=1}^n \hat f_{n-1, w}^{(i)}(X_i)\]
+
+And this is exactly what we want since this minimization problem depends only on the kernel and not on the distribution $f$.
+
+\begin{proposition}
+    \textbf{Theorem (Stone 1984):}
+    \[\P\left(\lim_{n \to \infty} \frac{\ISE(\hat f_{\hat w_n}, f)}{\inf_w \ISE(\hat f_{w, n}, f)} = 1\right) = 1 \]
+    (i.e. almost surely)
+\end{proposition}
+
+However, this convergence could be very slow (especially for $X_i \sim f \in \R^d, \; d \gg 1$)
+
+\tbf{Example:} For $f$ Gaussian in $\R^d$ with $f(0) = \left(\frac{1}{\sqrt{2\pi}}\right)^d$, to have
+\[\abs{\hat f_{\hat w_n} - f(0)} \leq \frac{1}{10} f(0)\]
+
+\qquad \begin{tabular}{cc}
+    $d$ & $n$    \\
+    1   & 4      \\
+    2   & 19     \\
+    5   & 768    \\
+    10  & 842000 \\
+    $\vdots$
+\end{tabular}
+
+which is very fast growth
 \end{document}
