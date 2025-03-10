@@ -37,6 +37,10 @@
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{calc, intersections, decorations.markings}
 
+\usetikzlibrary{external}
+\tikzexternalize
+\tikzsetexternalprefix{figures/}
+
 \newcommand{\ans}[1]{\boxed{\text{#1}}}
 \newcommand{\vecs}[1]{\langle #1\rangle}
 \renewcommand{\hat}[1]{\widehat{#1}}
@@ -106,6 +110,8 @@
 \usepackage{tcolorbox}
 \tcbuselibrary{breakable, skins}
 \tcbset{enhanced}
+\tcbset{shield externalize}
+
 \newenvironment*{tbox}[2][gray]{
     \begin{tcolorbox}[
         parbox=false,
@@ -1551,14 +1557,355 @@ However, this convergence could be very slow (especially for $X_i \sim f \in \R^
 \tbf{Example:} For $f$ Gaussian in $\R^d$ with $f(0) = \left(\frac{1}{\sqrt{2\pi}}\right)^d$, to have
 \[\abs{\hat f_{\hat w_n} - f(0)} \leq \frac{1}{10} f(0)\]
 
-\qquad \begin{tabular}{cc}
-    $d$ & $n$    \\
-    1   & 4      \\
-    2   & 19     \\
-    5   & 768    \\
-    10  & 842000 \\
-    $\vdots$
-\end{tabular}
+\begin{center}
+    \begin{tabular}{c|c}
+        $d$ & $n$    \\ \hline
+        1   & 4      \\
+        2   & 19     \\
+        5   & 768    \\
+        10  & 842000 \\
+        $\vdots$
+    \end{tabular}
+\end{center}
 
 which is very fast growth
+
+\section{March 3}
+\subsection{Maximum Likelihood Estimation}
+
+\tbf{Setup:} Sample $X_1,\, \dots,\, X_n \sim p_{\theta}$ with $\theta$ unknown. We want to find $\theta$ that makes $X_1 =x_1, \dots, X_n = x_n$ most likely (i.e. the parameter that defines the distribution that best fits the observation)
+
+\begin{align*}
+    \hat \theta & = \argmax_{\tilde \theta} p_{\tilde \theta}(X_1 = x_1, \dots, X_n = x_n)                                                        \\
+                & = \argmax_{\tilde \theta} p_{\tilde \theta}(x_1)\cdots p_{\tilde \theta}(x_n)                                                   \\
+                & = \argmax_{\tilde \theta} \frac{1}{n} \sum_{i=1}^n \log p_{\tilde \theta}(x_i)                                                  \\
+                & = \argmax_{\tilde \theta} \sum_{x=1}^s (\log p_{\tilde \theta}(x)) \hat p(x)                                                    \\
+                & = \argmin_{\tilde \theta} -\sum_{x=1}^{s} \hat p(x) \log p_{\tilde \theta}(x)                                                   \\
+                & = \argmin_{\tilde \theta} -\sum_{x=1}^{s} \hat p(x) \log \frac{\hat p(x)}{p_{\tilde \theta}(x)} - \sum \hat p(x) \log \hat p(x) \\
+                & = \argmin_{\tilde \theta} D(\hat p \parallel p_{\tilde \theta}) + H(\hat p)                                                     \\
+                & = \argmin_{\tilde \theta} D(\hat p \parallel p_{\tilde \theta})
+\end{align*}
+since the entropy term does not depend on $\theta$.
+
+\tbf{Conclusion:} MLE is equivalent to finding the distribution that is closest in KL-divergence to the empirical distribution.
+
+\tbf{Example:} $X_1, \dots, X_n \sim \Nc(\mu, 1)$. Equivalently, $f_{\mu} = \frac{1}{\sqrt{2\pi}} e^{-\frac{(x-\mu)^2}{2}}$.
+
+Hence,
+\begin{align*}
+    \hat \mu & = \argmax_{\tilde \mu} \prod_{i=1}^n f_{\mu}(x_i)               \\
+             & = \argmax \exp\left(\sum -\frac{(x_i - \tilde \mu)^2}{2}\right) \\
+             & = \argmin \sum_{i=1}^n (x_i - \tilde \mu)^2                     \\
+             & \overset{*}{=} \frac{1}{n} \sum_{i=1}^n x_i
+\end{align*}
+
+\begin{exercise}
+    \textbf{Exercise:} Prove the starred equality above.
+\end{exercise}
+
+\tbf{Example:} $X_1, \dots, X_n \sim f_{\lambda} = \frac{1}{Z_{\lambda}} p(x) \exp\left(\sum_{j=1}^c \lambda_j \Ec_j(x)\right) $
+
+Then
+\begin{align*}
+    \hat \lambda & = \argmax \prod f_{\tilde \lambda} (x_i)                                                                                                                    \\
+                 & = \argmin -\frac{1}{n} \sum_{i=1}^{n} \log(f_{\tilde \lambda}(x_i)) \qquad (\text{invariant under constant})                                                \\
+                 & = \argmin -\frac{1}{n} \sum_{i=1}^{n} \log\left(\frac{1}{Z_{\lambda}} p(x_i) \exp\left(\sum_{j=1}^c \lambda_j \Ec_j(x)\right)\right)                        \\
+                 & = \argmin -\frac{1}{n} \sum_{i=1}^{n} \log\left(\frac{1}{Z_{\lambda}} \exp\left(\sum_{j=1}^c \lambda_j \Ec_j(x)\right)\right) \qquad (p(x_i) \text{ known}) \\
+                 & = \argmin \log(Z_{\tilde \lambda}) - \frac{1}{n} \sum_{i=1}^n \sum_{j=1}^{c} \tilde \lambda_j \Ec_j(x_i)                                                    \\
+                 & = \argmin \log(Z_{\tilde \lambda}) - \sum_{j=1}^{c} \lambda_j \left(\frac{1}{n} \sum_{i=1}^n \Ec_j(x_i)\right)                                              \\
+                 & = \argmin \log(Z_{\tilde \lambda}) - \sum_{j=1}^{c} \lambda_j \theta_j
+\end{align*}
+where $\theta_j = \frac{1}{n} \sum_{i=1}^n \Ec_j(x_i)$ are the observed statistics.
+
+\subsection{Classification}
+
+\tbf{Motivation:} Suppose we set up outside the dining hall and observe the patterns of the rush. There is a large group that comes in at noon and another group that comes in later
+
+\begin{center}
+    \begin{tikzpicture}
+        \begin{axis}[
+                width=0.3\textwidth,
+                axis lines=middle,
+                no markers,
+                xtick={1.5, 3},
+                xticklabels={12:00, 1:00},
+                ytick=\empty,
+                clip=false,
+                xlabel={},
+                ylabel={},
+                domain=0:6,
+                ymin=0, ymax=2,
+                xmin=0, xmax=6,
+                view = {0}{90}
+            ]
+            \addplot[blue] {1.5*e^(-2*(x-1.5)^2)};
+            \addplot[red] {0.5*e^(-(x-3)^2)};
+        \end{axis}
+    \end{tikzpicture}
+\end{center}
+
+If we interviewed a student at 2:00, it is quite likely they will be from group two. Similarly, if we interviewed a student at 10:00, they are likely from group one. But what about at 12:30? This is the problem of classification.
+
+Formally, let $X \in \R^d$ be some random variable. Let $Y = \{1, \dots, c\}$ be classes with $\pi_i = \P(Y = i)$ and $f_i(x)$ the class conditioned density (in the example above, $f_2$ would be the red curve).
+
+Then for any set $A$,
+\[P_X(A) = \sum_{i=1}^{c} \pi_i \P(A)\]
+and
+\[f_X(A) = \sum_{i=1}^{c} \pi_i f_i(A)\]
+
+We define a \tbf{classification} $h: \R^d \to \{1, \dots, c\}$.
+
+\section{March 5}
+
+\begin{proposition}
+    \textbf{Bayes' Classification Rule:}
+    \[h^*(x) = \argmax_{i =1:c} \P(Y = i \; | \; X = x) \]
+\end{proposition}
+
+\tbf{Example:} $Y \in \{1, 2\}$.
+\begin{align*}
+    \P(Y = 1\; | \; X = x) & = \frac{\P(Y= 1, X = x)}{\P(X = x)}               \\
+                           & = \frac{\P(Y=1) \P(X = x \; | \; Y= 1)}{\P(X= x)} \\
+                           & = \frac{\pi_1 \cdot f_1(x)}{\P(X = x)}            \\
+    \P(Y = 2\; | \; X = x) & = \frac{\pi_2 \cdot f_2(x)}{\P(X = x)}
+\end{align*}
+
+Hence,
+\[h^*(x) = \begin{cases}
+        2 & \pi_1 f_1(x) < \pi_2 f_2(x) \\
+        1 & \text{otherwise}
+    \end{cases}\]
+
+In what sense can we say $h^*$ is the ``best'' classifier?
+\[\P(h^*(X) \neq Y) \leq \P(h(x) \neq Y) \qquad \forall h: \R^d \to \{1, \dots, c\}\]
+
+\begin{exercise}
+    \textbf{Exercise:} Prove the optimality of Bayes' classification rule. Hint:
+    \[\P(h^*(X) = Y) = \int_x \P(Y = h^*(x) \; | \; X = x) f_X(x)\; dx\]
+\end{exercise}
+
+\begin{proof}
+    \emph{Proof:}
+    \begin{align*}
+        \P(h^*(x) \neq Y) & = 1 - \P(h^*(x) = Y)                                                             \\
+                          & = 1 - \int_x \P(Y = h^*(x) \; | \; X = x) f_X(x)\; dx                            \\
+                          & = 1 - \int_x \P(Y = \argmax_i [\P(Y = i \; | \; X = x)]; | \; X = x) f_X(x)\; dx \\
+                          & \leq 1 - \int_X \P(Y = h(x) \; | \;X = x) f_X(x)\; dx                            \\
+                          & = 1 - \P(h(X) = Y)                                                               \\
+                          & = \P(h(X) \neq Y)
+    \end{align*}
+\end{proof}
+
+In applications, however, we may be able to approximate the $f_i$'s by sampling but not necessarily the $\pi_i$'s.
+
+\begin{proposition}
+    \textbf{Neyman-Pearson (NP) Classification:} Fix $t \in (0, \infty)$. Then
+    \[h_t(x) = \begin{cases}
+            1 & \text{if } \frac{f_2(x)}{f_1(x)} < t \\
+            2 & \text{if } \frac{f_2(x)}{f_1(x)} > t \\
+        \end{cases}\]
+\end{proposition}
+
+\tbf{Remark:} In the case $t = \frac{\pi_1}{\pi_2}$, then NP is equivalent to Bayes.
+
+If $Y = 1$ represents a negative test and $Y = 2$ represents a positive test, we have
+\begin{itemize}
+    \item The detection rate $\P(h(X) = 2 \; | \; Y = 2)$
+    \item The false alarm rate $\P(h(X) = 2 \; | \; Y = 1)$
+\end{itemize}
+
+Intuitively, we would like to maximize the detection rate while minimizing the false alarm rate.
+
+\begin{tbox}{\textbf{Theorem:} Fix $t \in (0, \infty)$. Let $h$ be any other classifier. If $\text{FAR}_h \leq \text{FAR}_{h_t}$, then $\text{DR}_h \leq \text{DR}_{h_t}$}
+    \emph{Intuition:}
+
+    We have
+    \[\text{FAR}_{h_t} = \P(h(X) = 2 \; | \; Y = 1) = \P(\frac{f_2(x)}{f_1(x)} > t \; | \; Y= 1)\]
+    so as $t \to \infty$, $\text{FAR}_{h_t} \searrow$ and $\text{DR}_t \searrow$
+
+    Under NP classification,
+    \begin{center}
+        \begin{tikzpicture}
+            \begin{axis}[
+                    width=0.3\textwidth,
+                    axis lines=middle,
+                    no markers,
+                    xtick={1},
+                    ytick={1},
+                    clip=false,
+                    xlabel={FAR},
+                    ylabel={DR},
+                    domain=-2:2,
+                    ymin=0, ymax=1.5,
+                    xmin=0, xmax=1.5,
+                    view = {0}{90}
+                ]
+                \draw[blue] (0, 0) to[bend left] (1, 1) node[right] {$t = 0$};
+            \end{axis}
+        \end{tikzpicture}
+    \end{center}
+
+    \div
+
+    \emph{Proof:}
+
+    \begin{center}
+        \begin{tikzpicture}
+
+            \draw (-3, -3) rectangle (5, 3) node[below left] {$\Omega$};
+
+            \draw (0, 0) circle (2);
+            \draw (2, 0) circle (2);
+
+            \node at (0, 1.5) {\tbf{$A$}};
+            \node at (2, 1.5) {\tbf{$\tilde A$}};
+            \node at (1, 1.2) {\tbf{$B$}};
+
+            \node at (-1, 0.5) {$h = 2$};
+            \node at (-1, -0.5) {$h_t = 1$};
+
+            \node at (3, 0.5) {$h = 1$};
+            \node at (3, -0.5) {$h_t = 2$};
+
+            \node at (1, 0.5) {$h = 2$};
+            \node at (1, -0.5) {$h_t = 2$};
+        \end{tikzpicture}
+    \end{center}
+
+    We have
+    \begin{align*}
+        \text{FAR}_h & = \P(h(X) = 2 \; | \; Y=1)   \\
+                     & = \P(A \cup B \; | \; Y = 1) \\
+                     & = p_1(A \cup B)
+    \end{align*}
+    where $p_1$ is the marginal conditioned on the class being $1$.
+
+    Then:
+    \begin{enumerate}
+        \item $p_1(A \cup B) \leq p_1(\tilde A \cup B) \implies p_1(A) \leq p_1(\tilde A)$ (since $A, B$ disjoint).
+
+              We want to show $p_{\alpha}(A) \leq p_2(\tilde A)$
+
+              Notice
+              \begin{align*}
+                  A        & \sub \{h_t(x) = 1\} = \left\{\frac{f_2(x)}{f_1(x)} < t\right\} = \{f_2(X) < t \cdot f_1(X)\} \\
+                  \tilde A & \sub \{h_t(x) = 2\} = \left\{\frac{f_2(x)}{f_1(x)} > t\right\} = \{f_2(X) > t \cdot f_1(X)\} \\
+              \end{align*}
+
+              We have
+              \begin{align*}
+                  p_1(X \in A)                         & \leq p_1(X\in \tilde A)             \\
+                  p_1(X \in A) = t \int_A f_1(X)\; d\P & \leq t \int_{\tilde A} f_1(X)\; d\P
+              \end{align*}
+    \end{enumerate}
+\end{tbox}
+
+\section{March 7}
+
+\tbf{Motivation:} for training data $(X_1, Y_1) \dots (X_n, Y_n)$ with $X_i \in \R^d$ and $Y_i \in \{1, \dots, s\}$, we would like to build $h: \R^d \to \{1, \dots, s\}$.
+
+There are multiple different approaces:
+\begin{itemize}
+    \item Generative
+    \item Discriminative
+    \item Algorithmic
+\end{itemize}
+
+\subsection{Generative Classifiers}
+\[h^*(x) = \argmax_{x \in \{1, \dots, s\}} \P(Y = c \; | \; X = x) = \argmax_c \frac{\pi_c f_c(x)}{\P(X = x)}\]
+
+A good estimator given data $(X_1, Y_1) \dots (X_n, Y_n)$ is clearly
+\[\hat \pi_c = \frac{\#\{i: Y_i = c\}}{n}\]
+
+But what if we do not know $f_c$? This gets especially difficult when $d$ is large.
+
+\tbf{Naive Bayes:} Assume $X = (X^1, X^2, \dots, X^d)$ and $f_c(x^1, \dots, x^d) = f_c^1(x^1) \cdots f_c^d(x^d)$.
+
+Then instead of needing to find $(f_c)^s$ with $f_c: \R^d \to \R$, it suffices to find $(f_c^k)_{k=1:d}^{c=1:s}$ for $f_c^k: \R \to \R$
+
+\tbf{Quadratic Discriminant Analysis (QDA):}
+Assume
+\[f_c(x) \sim \Nc(\mu_c, \Sigma_c)\]
+
+Then
+\[f_c(x, \mu_c, \Sigma_c) = \frac{1}{\sqrt{(2\pi)^d \abs{\Sigma}}} \exp(-\frac{1}{2} (x - \mu_c)^T \Sigma_c^{-1}(x - \mu))\]
+for $x \in \R^{d \times 1}$, $\mu_c \in \R^{d \times 1}$, $\Sigma_c \in \R^{d\times d}$
+
+However, if we are to attempt MLE on $\mu_c, \Sigma_c$, we need to ensure that we have enough data $n$ to estimate the $d^2s$ parameters across classes $\{1, \dots, s\}$. In practice, this can lead to over fitting.
+
+\section{March 10}
+
+\tbf{Definition:} If we partition a space $\Omega = \bigcup_{i=1}^s A_i$ into disjoint sets, then \emph{precision boundary} of $A_i$ is $\partial A_i = A_i \setminus \overset{\circ}{A}_i$.
+
+Last time, we saw a classification method that let us use the MLE on high-dimensional spaces but which required a lot of data in practice. This was the Quadratic Discriminant Analysis (QDA), which had a quadratic precision boundary.
+
+\begin{center}
+    \begin{tikzpicture}
+        \draw (0, 0) rectangle (4, 4);
+        \draw (3, 4) arc (0:-90:3);
+        \draw (1, 1.2) arc (10:-90:1);
+        \draw (2.2, 2) arc (90:0:1.8);
+        \draw (4, 3.8) arc (90:270:1.2);
+
+
+
+
+    \end{tikzpicture}
+\end{center}
+
+We can follow a similar but slightly less flexible approach.
+
+\tbf{Linear Discriminant Analysis:}
+
+Assume $f_c \sim \Nc(\mu_c, \Sigma)$.
+
+Then the precision boundary is given by
+\[\left\{x \in \R^d: \frac{f_2(x)}{f_1(t)} = t\right\}\]
+from NP. We claim this is a linear set.
+
+\begin{proof}
+    \emph{Proof:} By assumption, $f_1 \sim \Nc(\mu_1, \Sigma)$ where $\mu_1 \in \R^d$ and $\Sigma \in \R^{d \times d}$.
+
+    Then
+    \[f_1(x) = \frac{1}{(2\pi)^{d/2} \abs{\Sigma}^{d/2}} \exp\left(-\frac{1}{2} (x- \mu_1)^T \Sigma^{-1}(x-\mu_1)\right) \]
+    notice
+    \[(x- \mu_1)^T \Sigma^{-1}(x-\mu) \in \R^{(1 \times d)(d \times d)(d \times 1)} = \R^1\]
+
+    Similarly, we can write
+    \[f_2(x) = \frac{1}{(2\pi)^{d/2} \abs{\Sigma}^{d/2}} \exp\left(-\frac{1}{2} (x- \mu_2)^T \Sigma^{-1}(x-\mu_2)\right) \]
+    so
+    \[\log t = \log \frac{f_1}{f_2} = \frac{1}{2} (x- \mu_1)^T \Sigma^{-1} (x - \mu_1) - (x - \mu_2)^T \Sigma^{-1} (x - \mu_2)\]
+
+    In the case $d=1$, we have $\Sigma = \sigma^2$ so
+    \[\log t = \frac{(x- \mu_1)^2}{\sigma^2} - \frac{(x - \mu_2)^2}{\sigma^2} = -\frac{2x(\mu_1 - \mu_2) + \mu_1^2 + \mu_2^2}{\sigma^2}\]
+    but in the QDA case, we would have $\Sigma = (\sigma^2_1, \sigma^2_2)$ so the terms would not cancel.
+\end{proof}
+
+\subsection{Discriminative Construction}
+Recall that in the Bayes' classification rule (the optimal case),
+\[h^*(x) = \argmax_{c \in \{1, \dots, s\}} \P(Y = c \; | \; X = x)\]
+
+Earlier, we wrote $\P(Y = c \; | \; X= x) = \pi_c f_c(x)$ and tried to estimate $\pi_c$ and $f_c$. But what if we tried to estimate $r_c(x) = \P(Y = c \; | \; X = x)$ directly?
+
+\tbf{Linear Regression:} For $s= 2$, we want $r_1(x)$ and $r_2(x)$ satisfying $r_1(x) + r_2(x) = 1$. It seems reasonable to try linear regression.
+
+We can model
+\begin{gather*}
+    \log \frac{r_2(x)}{r_1(x)} = \alpha + \beta x\\
+    \log \frac{r_2}{1-r_2} = \alpha + \beta x\\
+    r_2 = \frac{e^{\alpha + \beta x}}{1 + e^{\alpha + \beta x}}
+\end{gather*}
+
+\tbf{Softmax:} Softmax is a generalization of logistic regression for $s > 2$.
+
+As before,
+\[\log \frac{r_k(x)}{r_1(x)} = \alpha_k + \beta_k x \implies r_k(x) = \frac{e^{\alpha_k + \beta_k x}}{1 + \sum_{k=n}^s e^{\alpha_k + \beta_k x} }\]
+
+Then we can use MLE to estimate $\alpha_k, \beta_k$.
+
+\tbf{k-Nearest Neighbor Classification:}
+
+Let $D_k(x)$ be the closed ball centered at $x$ with radius $R_k(x)$, the smallest radius that contains $k$ data points.
+
+Then
 \end{document}
