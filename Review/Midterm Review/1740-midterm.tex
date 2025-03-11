@@ -1,0 +1,370 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{letterpaper, margin=0.25in}
+\usepackage{graphicx} 
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{array} 
+\usepackage{paralist} 
+\usepackage{verbatim}
+\usepackage{subfig}
+\usepackage{fancyhdr}
+\usepackage{sectsty}
+\usepackage{multicol}
+\usepackage[shortlabels]{enumitem}
+
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0pt} 
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} 
+\usepackage[titles,subfigure]{tocloft}
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} %
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{empheq}
+\usepackage{xcolor}
+\usepackage{bbm}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{tikz-cd}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{intersections, decorations.markings}
+\tikzset{
+    marking along/.style n args={2}{
+        decoration={
+                markings, 
+                mark=at position #1 with {\arrow{#2}}
+        },
+        postaction={decorate}
+        },
+    marking along/.default={0.5}{>}
+}
+
+\newcommand{\ans}[1]{\boxed{\text{#1}}}
+\newcommand{\vecs}[1]{\langle #1\rangle}
+\renewcommand{\hat}[1]{\widehat{#1}}
+
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\C}{\mathbb{C}}
+
+\newcommand{\ind}{\mathbbm{1}}
+\newcommand{\qed}{\quad \blacksquare}
+
+\newcommand{\brak}[1]{\left\langle #1 \right\rangle}
+\newcommand{\bra}[1]{\left\langle #1 \right\vert}
+\newcommand{\ket}[1]{\left\vert #1 \right\rangle}
+
+\newcommand{\abs}[1]{\left\vert #1 \right\vert}
+\newcommand{\mfX}{\mathfrak{X}}
+\newcommand{\ep}{\varepsilon}
+
+\newcommand{\Ec}{\mathcal{E}}
+\newcommand{\Nc}{\mathcal{N}}
+
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\Cc}{\mathcal{C}}
+\newcommand{\B}{\mathcal{B}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\X}{\chi}
+\renewcommand{\L}{\mathcal{L}}
+
+\newcommand{\sub}{\subseteq}
+\newcommand{\st}{\text{ s.t. }}
+\newcommand{\card}{\text{card }}
+\renewcommand{\div}{\vspace*{10pt}\hrule\vspace*{10pt}}
+\newcommand{\surj}{\twoheadrightarrow}
+\newcommand{\inj}{\hookrightarrow}
+\newcommand{\biject}{\hookrightarrow \hspace{-8pt} \rightarrow}
+\renewcommand{\bar}[1]{\overline{#1}}
+\newcommand{\overcirc}[1]{\overset{\circ}{#1}}
+\newcommand{\diam}{\text{diam }}
+
+\renewcommand{\Re}{\text{Re}\,}
+\renewcommand{\Im}{\text{Im}\,}
+\newcommand{\sign}{\text{sign}\,}
+
+\DeclareMathOperator*{\argmax}{\arg\max}
+\DeclareMathOperator*{\argmin}{\arg\min}
+\newcommand{\Var}{\text{Var}\,}
+\newcommand{\Cov}{\text{Cov}\,}
+
+\newcommand{\iid}{\overset{\text{iid}}{\sim}}
+
+\newcommand*{\tbf}[1]{\ifmmode\mathbf{#1}\else\textbf{#1}\fi}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable, skins}
+\tcbset{enhanced}
+\newenvironment*{tbox}[2][gray]{
+    \begin{tcolorbox}[
+        parbox=false,
+        colback=#1!5!white,
+        colframe=#1!75!black,
+        breakable,
+        title={#2}
+    ]}
+    {\end{tcolorbox}}
+
+\newenvironment*{exercise}[1][red]{
+    \begin{tcolorbox}[
+        parbox=false,
+        colback=#1!5!white,
+        colframe=#1!75!black,
+        breakable
+    ]}
+    {\end{tcolorbox}}
+
+\newenvironment*{proof}[1][blue]{
+\begin{tcolorbox}[
+    parbox=false,
+    colback=#1!5!white,
+    colframe=#1!75!black,
+    breakable
+]}
+{\end{tcolorbox}}
+
+\newenvironment*{proposition}[1][gray]{
+\begin{tcolorbox}[
+    parbox=false,
+    colback=#1!5!white,
+    colframe=#1!75!black,
+    breakable
+]}
+{\end{tcolorbox}}
+
+\begin{document}
+\begin{multicols}{2}
+
+    \section*{Entropy}
+
+    The number of arrangements of $n$ states $\{1, \dots, s\}$ that yield a distribution $\hat p$:
+    \[C(\hat p) = \binom{n}{\hat p_1 n, \dots, \hat p_s n} = \frac{n!}{(\hat p_1 n)! \cdots (\hat p_s)!}\]
+
+    \tbf{Stirling's Approximation:}
+    \[k! \approx k^k e^{-k} \sqrt{2\pi k}\]
+
+    \tbf{Shannon Entropy:}
+    \begin{itemize}
+        \item For $p$ a pmf, $H(p) = -\sum_{x=1}^{s} p(x) \log p(x)$
+        \item For $p$ a pdf, $H(p) = -\int_{-\infty}^{\infty}  p(x) \log p(x) \, dx$
+    \end{itemize}
+
+    \tbf{Entropy Approximation:} $C(\hat p) \approx e^{nH(p)}$
+
+    \begin{proposition}
+        \textbf{Maximum Entropy Principle:} Let $p$ satisfy
+        \begin{enumerate}
+            \item $\sum_{x=1}^s p(x) = 1$
+            \item $\sum_{x=1}^{s} p(x) \Ec(x) \approx \theta$
+            \item $p$ maximizes $H(p)$
+        \end{enumerate}
+        then $p$ has the form
+        \[p(x) = \frac{1}{Z_{\lambda}} e^{\lambda \Ec(x)} = \frac{1}{\sum_{x=1}^{s} e^{\lambda \Ec(x)}} e^{\lambda \Ec(x)}\]
+        where $\lambda$ is found via the constrain $\sum p(x) \Ec(x) = \theta$.
+
+        \div
+
+        In the case of seeking $\argmax_p H(p)$ subject to constraints $\sum p_x = 1$ and $\sum p_x \Ec_i(x) = \theta_i$ for $i =1:k$, $p$ will have form
+        \[p(x) = \frac{1}{Z_{\lambda}}\exp[\sum_{i=1}^k \lambda_i \Ec_i(x)]\]
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Large Deviation Principle:} For $X_1,\, \dots,\, X_n \iid p$ a pmf on $\{1, \dots, s\}$, if $\Ec: \{1, \dots, s\} \to \R$ satisfies $\frac{1}{n} \sum_{i=1}^n \Ec(X_k) = \theta$, then $\E_{\hat p}[\Ec(X)] = \theta$
+    \end{proposition}
+
+    \tbf{Observations:} For $q$ a distribution on $\{1, \dots, s\}$,
+    \[\P(\hat p = q) = \binom{n}{n_1, \dots, n_s} \prod_{x=1}^s p_x^{q_x \cdot n}\]
+
+    Further,
+    \[\frac{e^{-nD(q \parallel p)}}{(n+1)^s} \leq \P(\hat p =q) \leq e^{-nD(q \parallel p)}\]
+
+    \tbf{Kullback-Leibler Divergence:}
+    \[D(q \parallel p) = -\sum_{x=1}^s q_x \log \frac{p_x}{q_x}\]
+    \begin{itemize}
+        \item $D(q \parallel p) \geq 0$
+        \item $D(q \parallel p) = 0 \iff p = q$
+    \end{itemize}
+
+    \tbf{Convexity:} $f$ convex if $f(\lambda x + (1 - \lambda)y) \leq \lambda f(x) + (1 - \lambda)f(y)$ for $\lambda \in [0, 1]$.
+    \begin{itemize}
+        \item $f$ convex iff $f''(x) \geq 0$
+        \item $f$ concave iff $f''(x) \leq 0$ iff $-f$ is convex
+        \item For $x \in \R^s$, $f$ convex iff $h(\lambda) = f(\lambda x + (1 - \lambda)y)$ convex
+    \end{itemize}
+
+    \begin{proposition}
+        \textbf{Jensen's Inequality:} For $g: \R \to \R$ convex, $\E[g(X)] \geq g(\E[X])$
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Sanov's Theorem:} For $B$ an open subset of the space of distributions on $\{1, \dots, s\}$,
+        \[\lim_{n \to \infty} \frac{1}{n} \log \P(\hat p \in B) = -\inf_{q \in B} D(q \parallel p)\]
+
+        Further, if $p^* = \argmin_{q \in B} D(q \parallel p)$ and $\hat p \in B$, $\hat p \overset{\P}{\longrightarrow} p^*$
+    \end{proposition}
+
+    \tbf{Exponential Families:}
+    \[p(x) = \frac{1}{Z(\lambda)} h(x) e^{\lambda \cdot T(x)}\]
+    where $Z(\lambda)$ satisfies:
+    \begin{enumerate}
+        \item $\frac{\partial}{\partial \lambda_k} \log Z_k  \E_{T_k(X)}$
+        \item $\frac{\partial^2}{\partial \lambda_k \partial \lambda_j} \log Z_k = \Cov_{T_k(X), T_j(X)}$
+        \item $\log Z_k$ is convex in $\lambda$ and strictly convex unless $\exists a \in \R^k$ such that $\sum a_k T_k(x) = b$ for $b$ constant.
+        \item $\log Z(\lambda) - \sum \lambda_k \theta_k$ is convex in $\lambda$ and minimized when $\E[T(X)] = \theta_k$.
+    \end{enumerate}
+
+    \section*{Source Coding}
+    \tbf{Source Code:} $C: \{1, \dots, t\} \to \{0, 1\}^*$
+
+    \tbf{Prefix Code:} a code $C$ for which $C(x)$ is not a prefix of $C(y)$ for $x \neq y$
+
+    \begin{proposition}
+        \textbf{Kraft-McMillan Inequality:} For all prefix codes $C$,
+        \[\sum_{x=1}^{t} 2^{-\abs{C(x)}} \leq 1 \]
+        and for any code lengths $\ell_1, \dots, \ell_t$ satisfying
+        \[\sum_{x=1}^t 2^{-\ell_x} \leq 1\]
+        there exists a prefix code $C$ with $\abs{C(x)} = \ell_x$
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Optimal Coding:} Let $\vec X \sim p$. For the optimal code $C^* = \argmin_{C \text{ prefix} \E_{p}\abs{C(X)}}$,
+        \[H(p) \leq \E_p \abs{C(X)} \leq H(p) + 1\]
+    \end{proposition}
+
+    \section*{Statistical Inference}
+    \tbf{Unbiased Estimator:} $\E[\hat \theta] = \theta$
+
+    \tbf{Consistent Estimator:}
+    \begin{itemize}
+        \item Almost sure consistency: $\P(\lim_{n \to \infty} \hat \theta_n = \theta) = 1$
+        \item Consistent in probability: $\forall \ep > 0, \P(\abs{\hat \theta_n - \theta} > \ep) \to 0$
+        \item Consistent in mean square: $\E[(\hat \theta_n - \theta)^2] \to 0$.
+    \end{itemize}
+
+    \tbf{Mean Square Error:}
+    \[\text{MSE}(\hat \theta_n) = \E[(\hat \theta_n - \theta)^2] = \Var[\hat \theta] + \text{Bias}(\hat \theta)^2\]
+
+    \begin{proposition}
+        \textbf{Theorem:} $\text{MSE}[\hat \theta_n] \to 0 \implies \P(\abs{\hat \theta_n - \theta} > \ep) \to 0$
+    \end{proposition}
+
+    \tbf{Bias:} $\text{Bias}(\hat \theta) = \E[\hat \theta] - \theta$
+
+    \tbf{Variance:} $\Var[\hat \theta] = \E[\hat \theta^2] - \E[\hat \theta]^2$
+
+    \begin{proposition}
+        \textbf{Kernel Density Estimation:} for a kernel $k$ satisfying
+        \begin{enumerate}
+            \item $k(x) \geq 0$
+            \item $\int x k(x) \; dx = 0$
+            \item $\int x^2 k(x) \; dx = 1$
+        \end{enumerate}
+        we define the kernel density estimator
+        \[\hat f_{n, w}(x; X_1, \dots, X_n) = \frac{1}{n} \sum_{i=1}^n k_w(x - X_i) = \frac{1}{n} \sum_{i=1}^n \frac{1}{w} k\left(\frac{x - X_i}{w}\right) \]
+    \end{proposition}
+
+    \tbf{Convolution:} Let $Z \sim f$ and $Y \sim g$ be independent. Then
+    \[Z + Y \sim (f \star g)(x) = \int_{\R} f(t) g(x -t)\; dt\]
+
+    \tbf{Integrated Square Error:}
+    \[\text{ISE}(\hat f) = \int_{\R} \abs{\hat f_n(x; X_{1:n}) - f(x)}^2\; dx\]
+
+    \tbf{Mean Integrated Square Error:}
+    \[\text{MISE}(\hat f) = \E[\text{ISE}(\hat f)] = \int_{\R} \E\abs{\hat f(x; X_{1:n}) - f(x)}^2\; dx\]
+
+    \begin{proposition}
+        \textbf{Asymptotics:} For $f, k$ smooth, as $w \to 0$,
+        \[\text{MISE}(\hat f_{n, w}) = \alpha w^4 + \frac{\beta}{nw} + \text{ error}\]
+    \end{proposition}
+
+    \tbf{Sylverman's Rule of Thumb:} For parameters $\alpha, \beta$ unknown, choose the kernel bandwidth $w \propto n^{-1/5}$
+
+    \tbf{Cross-Validation Estimator:}
+    \[\hat f_{n, w}^{(i)} (x; X_{1:n}) = \frac{1}{n} \sum_{j\neq i} \hat f_{n-1, w}(X_i) \]
+
+    \begin{proposition}
+        \textbf{Stone's Theorem:} For
+        \[\hat w_n = \argmin_w \int \hat f_{n, w}^2(x) - \frac{2}{n} \sum_{i=1}^n \hat f_{n-1, w}^{(i)}(X_i) \; dx\]
+        we have
+        \[\text{ISE}(\hat f_{\hat w_n}) \overset{a.s.}{\longrightarrow} \inf_w \text{ISE}(\hat f_{w, n}, f)\]
+    \end{proposition}
+
+    \tbf{Maximum Likelihood Estimation:} Sample $X_1,\, \dots,\, X_n \iid p_{\theta}$ for $\theta$ unknown. Then
+    \[\hat \theta = \argmax_{\theta} p_{\theta}(X_1 = x_1, \dots, X_n = x_n) = \argmin_{\theta} D(\hat p \parallel p_{\theta})\]
+
+    \section*{Classification}
+    Let $X \in \R^d$ be a RV with classes $Y \in \{1, \dots, c\}$. Define $\pi_i = \P(Y = i)$ and $f_i(x)$ the class conditioned density.
+
+    Then for any set $A$,
+    \begin{align*}
+        \P_X(A) & = \sum_{i=1}^c \pi_i \P(A) \\
+        f_x(A) = \sum_{i=1}^{c} \pi_i f_i(A)
+    \end{align*}
+
+    \begin{proposition}
+        \textbf{Bayes' Classification Rule:}
+        \[h^*(x) = \argmax_{i = 1:c} \P(Y = i \; | \; X = x)\]
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Neyman-Pearson Classification:} Fix $t \in (0, \infty)$. Then
+        \[h_t(x) = \begin{cases}
+                1 & \text{if } \frac{f_2(x)}{f_1(x)} < t \\
+                2 & \text{if } \frac{f_2(x)}{f_1(x)} > t \\
+            \end{cases}\]
+
+        \tbf{Note:} In the case $t = \frac{\pi_1}{\pi_2}$, then NP is equivalent to Bayes'.
+    \end{proposition}
+
+    \tbf{Detection Rate:} $\P(h(X) = 2 \; | \; Y  =2)$
+
+    \tbf{False Alarm Rate:} $\P(h(X) = 2 \; | \; Y = 1)$
+
+    \begin{proposition}
+        \textbf{Theorem:} Fix $t \in (0, \infty)$ and choose any classifier $h$. If $\text{FAR}(h) \leq \text{FAR}(h_t)$, then $\text{DR}(h) \leq \text{DR}(h_t)$
+    \end{proposition}
+
+    \subsection*{Generative Classifiers}
+
+    \emph{Motivation:} From Bayes,
+    \[h*(x) = \argmax_{x \in \{1, \dots, s\}} \P(Y = c \; | \; X = x) = \argmax_c \frac{\pi_c f_c(x)}{\P(X = x)}\]
+    so we can estimate $\hat \pi_c \approx \pi_c$ and then it suffices to estimate $f_c(x)$.
+
+    \tbf{Naive Bayes:} Assume $f_c(x_1, \dots, x_d) = \prod_{j=1}^d f_{c, j}(x_j)$. Then instead of needing to find $(f_c)^s$ with $f_c: \R^d \to \R$, it suffices to find $f_{c, j}: \R \to \R$.
+
+    \tbf{Quadratic Discriminant Analysis:} Assume $f_c(x) \sim \Nc(\mu_c, \Sigma_c)$. Then
+    \[f_c(x, \mu_c, \Sigma_c) = \frac{1}{\sqrt{(2\pi)^d \abs{\Sigma}}} \exp\left(-\frac{(x -\mu_c)\Sigma_c^{-1}(x - \mu_c)}{2}\right)\]
+    for $x, \mu_c in \R^d$ and $\Sigma_c \in \R^{d\times d}$.
+
+    \tbf{Linear Discriminant Analysis:} Assume $f_c(x) \sim \Nc(\mu_c, \Sigma)$.
+
+    \subsection*{Discriminative Classifiers:}
+    \emph{Motivation:}
+    \[h*(x) = \argmax_{x \in \{1, \dots, s\}} \P(Y = c \; | \; X = x) = \argmax_c r_c(x)\]
+
+    \tbf{Linear Regression:} Assume $s = 2$ so $r_1(x) + r_2(x) = 1$. Then
+    \[\log \frac{r_2(x)}{r_1(x)} = \alpha + \beta x \implies r_2 = \frac{e^{\alpha + \beta x}}{1 + e^{\alpha + \beta x}}\]
+    and it suffices to use MLE to estimate $\alpha, \beta$.
+
+    \tbf{Softmax:} Assume $s > 2$. Then model
+    \[\log \frac{r_k(x)}{r_1(x)} = \alpha_k + \beta_k x \implies r_k(x) = \frac{e^{\alpha_k + \beta_k x}}{1 + \sum_{k=n}^{s} e^{\alpha_k + \beta_k x} }\]
+
+\end{multicols}
+
+
+
+
+\end{document}
