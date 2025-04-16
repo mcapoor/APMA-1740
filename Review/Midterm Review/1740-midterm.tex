@@ -162,6 +162,9 @@
         \item For $p$ a pdf, $H(p) = -\int_{-\infty}^{\infty}  p(x) \log p(x) \, dx$
     \end{itemize}
 
+    \tbf{Asymptotics of Stirling Approximation:}
+    \[e^{\frac{1}{12k+1}} \leq \frac{k!}{k^ke^{-k}\sqrt{2\pi k}} \leq e^{\frac{1}{12k}}\]
+
     \tbf{Entropy Approximation:} $C(\hat p) \approx e^{nH(p)}$
 
     \begin{proposition}
@@ -220,7 +223,7 @@
     \[p(x) = \frac{1}{Z(\lambda)} h(x) e^{\lambda \cdot T(x)}\]
     where $Z(\lambda)$ satisfies:
     \begin{enumerate}
-        \item $\frac{\partial}{\partial \lambda_k} \log Z_k  \E_{T_k(X)}$
+        \item $\frac{\partial}{\partial \lambda_k} \log Z_k = \E_{T_k(X)}$
         \item $\frac{\partial^2}{\partial \lambda_k \partial \lambda_j} \log Z_k = \Cov_{T_k(X), T_j(X)}$
         \item $\log Z_k$ is convex in $\lambda$ and strictly convex unless $\exists a \in \R^k$ such that $\sum a_k T_k(x) = b$ for $b$ constant.
         \item $\log Z(\lambda) - \sum \lambda_k \theta_k$ is convex in $\lambda$ and minimized when $\E[T(X)] = \theta_k$.
@@ -241,8 +244,19 @@
 
     \begin{proposition}
         \textbf{Optimal Coding:} Let $\vec X \sim p$. For the optimal code $C^* = \argmin_{C \text{ prefix} \E_{p}\abs{C(X)}}$,
-        \[H(p) \leq \E_p \abs{C(X)} \leq H(p) + 1\]
+        \[H(p) \leq \E_p \abs{C^*(X)} \leq H(p) + 1\]
+
+        \div
+
+        \tbf{Block coding:} If instead we let $X_{1:n} \iid p$ and $C_n^* = \argmin_{C_n \text{ on } X_{1:n}} \E_p \abs{C_n(X_{1:n})}$, then
+        \[H(p)\leq \frac{1}{n} \E_p \abs{C_n^*(X_{1:n})} \leq H(p) + \frac{1}{n}\]
+
+        So by coding large enough blocks, we can get arbitrarily close the $H(p)$ bits/symbol.
     \end{proposition}
+
+    \tbf{Heuristic:} The optimal code will use about $\log \frac{1}{p_x}$ bits for symbol $x$.
+
+
 
     \section*{Statistical Inference}
     \tbf{Unbiased Estimator:} $\E[\hat \theta] = \theta$
@@ -304,63 +318,6 @@
 
     \tbf{Maximum Likelihood Estimation:} Sample $X_1,\, \dots,\, X_n \iid p_{\theta}$ for $\theta$ unknown. Then
     \[\hat \theta = \argmax_{\theta} p_{\theta}(X_1 = x_1, \dots, X_n = x_n) = \argmin_{\theta} D(\hat p \parallel p_{\theta})\]
-
-    \section*{Classification}
-    Let $X \in \R^d$ be a RV with classes $Y \in \{1, \dots, c\}$. Define $\pi_i = \P(Y = i)$ and $f_i(x)$ the class conditioned density.
-
-    Then for any set $A$,
-    \begin{align*}
-        \P_X(A) & = \sum_{i=1}^c \pi_i \P(A) \\
-        f_x(A) = \sum_{i=1}^{c} \pi_i f_i(A)
-    \end{align*}
-
-    \begin{proposition}
-        \textbf{Bayes' Classification Rule:}
-        \[h^*(x) = \argmax_{i = 1:c} \P(Y = i \; | \; X = x)\]
-    \end{proposition}
-
-    \begin{proposition}
-        \textbf{Neyman-Pearson Classification:} Fix $t \in (0, \infty)$. Then
-        \[h_t(x) = \begin{cases}
-                1 & \text{if } \frac{f_2(x)}{f_1(x)} < t \\
-                2 & \text{if } \frac{f_2(x)}{f_1(x)} > t \\
-            \end{cases}\]
-
-        \tbf{Note:} In the case $t = \frac{\pi_1}{\pi_2}$, then NP is equivalent to Bayes'.
-    \end{proposition}
-
-    \tbf{Detection Rate:} $\P(h(X) = 2 \; | \; Y  =2)$
-
-    \tbf{False Alarm Rate:} $\P(h(X) = 2 \; | \; Y = 1)$
-
-    \begin{proposition}
-        \textbf{Theorem:} Fix $t \in (0, \infty)$ and choose any classifier $h$. If $\text{FAR}(h) \leq \text{FAR}(h_t)$, then $\text{DR}(h) \leq \text{DR}(h_t)$
-    \end{proposition}
-
-    \subsection*{Generative Classifiers}
-
-    \emph{Motivation:} From Bayes,
-    \[h*(x) = \argmax_{x \in \{1, \dots, s\}} \P(Y = c \; | \; X = x) = \argmax_c \frac{\pi_c f_c(x)}{\P(X = x)}\]
-    so we can estimate $\hat \pi_c \approx \pi_c$ and then it suffices to estimate $f_c(x)$.
-
-    \tbf{Naive Bayes:} Assume $f_c(x_1, \dots, x_d) = \prod_{j=1}^d f_{c, j}(x_j)$. Then instead of needing to find $(f_c)^s$ with $f_c: \R^d \to \R$, it suffices to find $f_{c, j}: \R \to \R$.
-
-    \tbf{Quadratic Discriminant Analysis:} Assume $f_c(x) \sim \Nc(\mu_c, \Sigma_c)$. Then
-    \[f_c(x, \mu_c, \Sigma_c) = \frac{1}{\sqrt{(2\pi)^d \abs{\Sigma}}} \exp\left(-\frac{(x -\mu_c)\Sigma_c^{-1}(x - \mu_c)}{2}\right)\]
-    for $x, \mu_c in \R^d$ and $\Sigma_c \in \R^{d\times d}$.
-
-    \tbf{Linear Discriminant Analysis:} Assume $f_c(x) \sim \Nc(\mu_c, \Sigma)$.
-
-    \subsection*{Discriminative Classifiers:}
-    \emph{Motivation:}
-    \[h*(x) = \argmax_{x \in \{1, \dots, s\}} \P(Y = c \; | \; X = x) = \argmax_c r_c(x)\]
-
-    \tbf{Linear Regression:} Assume $s = 2$ so $r_1(x) + r_2(x) = 1$. Then
-    \[\log \frac{r_2(x)}{r_1(x)} = \alpha + \beta x \implies r_2 = \frac{e^{\alpha + \beta x}}{1 + e^{\alpha + \beta x}}\]
-    and it suffices to use MLE to estimate $\alpha, \beta$.
-
-    \tbf{Softmax:} Assume $s > 2$. Then model
-    \[\log \frac{r_k(x)}{r_1(x)} = \alpha_k + \beta_k x \implies r_k(x) = \frac{e^{\alpha_k + \beta_k x}}{1 + \sum_{k=n}^{s} e^{\alpha_k + \beta_k x} }\]
 
 \end{multicols}
 

@@ -41,6 +41,8 @@
 \tikzexternalize
 \tikzsetexternalprefix{figures/}
 
+\colorlet{mygreen}{green!50!teal}
+
 \newcommand{\ans}[1]{\boxed{\text{#1}}}
 \newcommand{\vecs}[1]{\langle #1\rangle}
 \renewcommand{\hat}[1]{\widehat{#1}}
@@ -101,6 +103,8 @@
 
 \newcommand{\MSE}{\text{MSE}\,}
 \newcommand{\ISE}{\text{ISE}\,}
+
+\newcommand{\notimplies}{\;\not\!\!\!\implies}
 
 
 \DeclareMathOperator*{\argmax}{\arg\max}
@@ -727,14 +731,14 @@ Now, we want to find $\lambda = (\lambda_1, \dots, \lambda_s)$ that satisfies
 
               \begin{exercise}
                   \textbf{Exercise:}  Email the proof to oanh\_nguyen1@brown.edu for bonus points.
-              \end{exercise}
 
-              \begin{proof}
+                  \div
+
                   \emph{Proof:}  In part 1, we showed that $\frac{\partial}{\partial \lambda_k} \log Z_{\lambda} = \E_{\lambda}[\Ec_k(X)]$. Hence, it suffices now to show
                   \[\frac{\partial}{\partial \lambda_l} \E_{\lambda}[\Ec_k(X)] = \Cov_{\lambda}(\Ec_k(X), \Ec_l(X))\]
 
                   \textcolor{red}{TODO}
-              \end{proof}
+              \end{exercise}
 
         \item \[H(\lambda_1, \dots, \lambda_c) = \begin{pmatrix}
                       \frac{\partial^2}{\partial \lambda_k\, \partial \lambda_l} \log Z_{\lambda}
@@ -1683,9 +1687,9 @@ In what sense can we say $h^*$ is the ``best'' classifier?
 \begin{exercise}
     \textbf{Exercise:} Prove the optimality of Bayes' classification rule. Hint:
     \[\P(h^*(X) = Y) = \int_x \P(Y = h^*(x) \; | \; X = x) f_X(x)\; dx\]
-\end{exercise}
 
-\begin{proof}
+    \div
+
     \emph{Proof:}
     \begin{align*}
         \P(h^*(x) \neq Y) & = 1 - \P(h^*(x) = Y)                                                             \\
@@ -1695,7 +1699,8 @@ In what sense can we say $h^*$ is the ``best'' classifier?
                           & = 1 - \P(h(X) = Y)                                                               \\
                           & = \P(h(X) \neq Y)
     \end{align*}
-\end{proof}
+\end{exercise}
+
 
 In applications, however, we may be able to approximate the $f_i$'s by sampling but not necessarily the $\pi_i$'s.
 
@@ -1904,9 +1909,1424 @@ As before,
 
 Then we can use MLE to estimate $\alpha_k, \beta_k$.
 
+\section{March 14}
+\subsection{Discriminative Classification Continued}
 \tbf{k-Nearest Neighbor Classification:}
 
 Let $D_k(x)$ be the closed ball centered at $x$ with radius $R_k(x)$, the smallest radius that contains $k$ data points.
 
-Then
+\begin{center}
+    \begin{tikzpicture}
+        \node[blue] at (0,0) {$\bullet$};
+        \draw[blue, dashed] (0, 0) circle (1);
+        \draw[blue, dashed] (0, 0) circle (2);
+
+        \node[blue] at (1, 0) {$R_0(x)$};
+        \node[blue] at (-2, 0) {$R_1(x)$};
+
+        \foreach \x in {1, ..., 5} {
+                \node (p-\x) at (rand*3, rand*3) {$\bullet$};
+                \node[right] at (p-\x) {$X_{\x}$};
+            }
+    \end{tikzpicture}
+\end{center}
+
+If we fix $k$, as $n \to \infty$, $R_k(x) \to 0$ which gives us the estimator
+\[\hat r_c(x) = \frac{\#\{i: X_i \in B(x, R_k(x)),\; Y_i = c\}}{k}\]
+
+\begin{tbox}{\textbf{Claim:} $\hat r_c(x) \to r_c(x)$, i.e. the K-NN estimator is consistent }
+    \emph{Proof:}
+
+    \begin{align*}
+        \hat r_c(x) & = \frac{\#\{i: X_i \in B(x, R_k(x)), Y_i = c\}}{\#\{i: X_i \in B(c, R_k(x))\}}                     \\
+                    & = \frac{\#\{i: X_i \in B(x, \ep), Y_i = c\}/n}{\#\{i: X_i \in B(c, \ep)\}/n} \qquad (\ep = R_k(x)) \\
+                    & \overset{n\to\infty}{\longrightarrow} \frac{\P(X \in B(x, \ep),\; Y=c)}{\P(X \in B(x, \ep))}       \\
+                    & \overset{*}{=} \frac{\P(Y = c) \P(X \in B(x, \ep) \; | \; Y=c)}{\P(X \in B(x, \ep))}               \\
+                    & = \P(Y = c) \frac{\int_{B(x, \ep)} f_c(t)\; dt}{\int_{B(x, \ep)} f(t)\; dt}                        \\
+                    & \approx \P(Y = c) \frac{f_c(x) \abs{B(x, \ep)}}{f(x) \abs{B(x, \ep)}}                              \\
+                    & = \P(Y = c) \frac{f_c(x)}{f(x)}                                                                    \\
+                    & = \frac{\P(Y = c) \P(X = x \; | \; Y=c)}{P(X = x)}                                                 \\
+                    & = \frac{\P(X = x, \; Y = c)}{\P(X = x)}                                                            \\
+                    & = \P(Y = c \; | \; X = x)                                                                          \\
+                    & = r_c(x)
+    \end{align*}
+
+    \tbf{Remark:} This is not entirely rigorous since we are taking both $n \to \infty$ and $\ep \to 0$. It would not be too difficult to make this rigorous by estimating the error of the limit $n \to \infty$. Leaving the way open to rigor is also why we cannot say
+    \[\frac{\P(Y = c) \P(X \in B(x, \ep) \; | \; Y=c)}{\P(X \in B(x, \ep))} = \P(Y = c \; | \; X \in B(x, \ep)) \overset{\ep \to 0}{\longrightarrow} \P(Y =c \; | \; X= x) = r_c(x)\]
+    in the starred equality.
+\end{tbox}
+
+\tbf{Support Vector Machine:}
+\[h^*(x) = \argmax_c r_c(x)\]
+
+\emph{Example:} In the case $s=2$, we want $r_1, r_2$ which gives
+\[h(x) = \frac{r_2(x)}{r_1(x)}\]
+so it suffices to find the precision boundary
+
+\begin{center}
+    \begin{tikzpicture}
+        \begin{axis}[
+                width=0.3\textwidth,
+                axis lines=middle,
+                no markers,
+                xtick=\empty,
+                ytick=\empty,
+                clip=false,
+                xlabel={$x$},
+                ylabel={$y$},
+                domain=-2:2,
+                ymin=-2, ymax=2,
+                xmin= -2, xmax=2,
+                view = {0}{90},
+                hide x axis,
+                hide y axis
+            ]
+            \addplot[blue, domain=0:2] {exp(-x^2)} node[right] {$h(x) = 1$};
+            \node at (1.5, 1) {$h > 1$};
+            \node at (-0.25, 0) {$h < 1$};
+        \end{axis}
+    \end{tikzpicture}
+\end{center}
+
+The trick here is to find a transformation $\phi$ so that the precision boundary is linear
+
+\begin{center}
+    \begin{tikzpicture}
+        \begin{axis}[
+                width=0.3\textwidth,
+                axis lines=middle,
+                no markers,
+                xtick=\empty,
+                ytick=\empty,
+                clip=false,
+                xlabel={$x$},
+                ylabel={$y$},
+                domain=-2:2,
+                ymin=-2, ymax=2,
+                xmin= -2, xmax=2,
+                view = {0}{90},
+                hide x axis,
+                hide y axis
+            ]
+
+            \pgfplotsinvokeforeach{0, 1, 2, 3, 4} {
+                \node[red] at (rand, rand+2) {$\bullet$};
+                \node[blue] at (rand, rand+2) {$\bullet$};
+            }
+
+            \draw[->] (2, 2) -- (4, 2) node[midway, above] {$\phi$};
+        \end{axis}
+    \end{tikzpicture}
+    \hspace{1cm}
+    \begin{tikzpicture}
+        \begin{axis}[
+                width=0.3\textwidth,
+                axis lines=middle,
+                no markers,
+                xtick=\empty,
+                ytick=\empty,
+                clip=false,
+                xlabel={$x$},
+                ylabel={$y$},
+                domain=-2:2,
+                ymin=-2, ymax=2,
+                xmin= -2, xmax=2,
+                view = {0}{90},
+                hide x axis,
+                hide y axis
+            ]
+            \draw (0, -2) -- (0, 2);
+
+            \pgfplotsinvokeforeach{0, 1, 2, 3, 4} {
+                \node[red] at (rand-1, rand) {$\bullet$};
+                \node[blue] at (rand+1, rand) {$\bullet$};
+            }
+        \end{axis}
+    \end{tikzpicture}
+\end{center}
+
+\begin{exercise}
+    \textbf{Bonus 3/14:} What is the setup for the classification problem? What does it mean to build a classifier?
+
+    \div
+
+    \tbf{Answer:} Given a set of data $\{(X_i, Y_i)\}_{i=1}^n$ on classes $Y_i \in \{1, \dots, s\}$ following an unknown distribution $f_c$ for $c \in \{1, \dots, s\}$, we want to find a function $h: \R^d \to \{1, \dots, s\}$ that best approximates the true distribution.
+
+    Bayes' Rule suggests that the optimal behavior is
+    \[h^*(x) = \argmax_c \P(Y = c \; | \; Y = x)\]
+
+    Everything else is finding different ways to estimate this function.
+\end{exercise}
+
+\section{March 17}
+\subsection{Support Vector Machine}
+
+Given data $(X_1, Y_1), \dots, (X_n, Y_n)$, we want to find a function $h: \R^d \to \{1, \dots, s\}$ that best approximates the true distribution.
+
+In $\R^d$, there exists a curve that partitions the data into regions where $h(x) = c$ for some $c \in \{1, \dots, s\}$. We want to find this curve. The idea behind support vector machines is to apply a transformation $\phi$ such that it suffices to choose a hyperplane (rather than a curve) in $\R^{d'}$ with $d' \gg d$.
+
+\emph{Example ($d=1$):}
+
+\begin{center}
+    \begin{tikzpicture}
+        \begin{axis}[
+                width=0.3\textwidth,
+                axis lines=middle,
+                no markers,
+                xtick={1, 2, 3, 4, 5, 6},
+                ytick=\empty,
+                xticklabels={$x_1$, $x_2$, , $x_3$, $x_4$, $x_5$},
+                clip=false,
+                xlabel={$x$},
+                ylabel={$y$},
+                domain=-2:2,
+                ymin=-1, ymax=1,
+                xmin=0, xmax=7,
+                view = {0}{90},
+                hide y axis
+            ]
+
+            \draw[black] (1, 0) circle (0.01) node[above, red] {$-$};
+            \draw[black] (2, 0) circle (0.01) node[above, red] {$+$};
+            \draw[black] (4, 0) circle (0.01) node[above, red] {$-$};
+            \draw[black] (5, 0) circle (0.01) node[above, red] {$-$};
+            \draw[black] (6, 0) circle (0.01) node[above, red] {$+$};
+
+            \addplot[smooth,blue] coordinates {
+                    (0, 0.25)
+                    (1, 0)
+                    (1.5, -0.25)
+                    (2, 0)
+                    (3, 0.25)
+                    (4, 0)
+                    (5, -0.25)
+                    (6, 0)
+                    (7, 0.25)
+                };
+        \end{axis}
+    \end{tikzpicture}
+\end{center}
+with classifier
+\begin{align*}
+    h(x) & = \text{sign}((x - X_1)(x - X_2)(x-X_3)(x-X_5))                                    \\
+         & =  \text{sign}(\alpha_4 x^4 + \alpha_3 x^3 + \alpha_2 x^2 + \alpha_1 x + \alpha_0)
+\end{align*}
+so for $\phi: \R \to \R^5$ by $x \mapsto (1, x, x^2, x^3, x^4)$, we have
+\[h(x) = \text{sign}(\vec a \cdot \phi(x))\]
+
+However this presents a few problems: it depends on raising the dimension (something we are always looking to avoid), can lead to overfitting, and presents ambiguities -- if there are multiple such hyperplanes, which do we choose?
+
+We will spend some time on this last question.
+
+Consider the case
+
+\begin{center}
+    \begin{tikzpicture}
+
+        \draw (-2, 0) -- (6, 0);
+
+        \node[red] at (2, 0) {$\bullet$};
+        \node[red, below] at (2, 0) {$X_1$};
+        \node[blue] at (3, 0) {$\bullet$};
+        \node[blue, below] at (3, 0) {$X_2$};
+
+        \foreach \x in {0, ..., 4} {
+                \draw[fill, red] (rand, 0) circle (0.05) node[above] {$+$};
+                \draw[fill, blue] (rand+4, 0) circle (0.05) node[above] {$-$};
+            }
+    \end{tikzpicture}
+\end{center}
+
+Intuitively, we would like our classifier not to be too close to the data points nor to favor one class over the other.
+
+In this case, $\frac{X_1 + X_2}{2}$ is a good choice which would give us classifier $h(x) = \text{sign}(\frac{X_1 + X_2}{2} - x)$.
+
+In the general case, we would like to find the hyperplane that \emph{maximizes the minimal distance to the precision boundary.} We call the points closest to the hyperplane the \emph{support vectors} (in our example, $X_1, X_2$)
+
+Formally, we want to find the hyperplane $0 = \alpha + \vec \beta \cdot x$ for $\alpha \in \R$, $\vec \beta, x \in \R^d$ which maximizes the minimal distance to the support vectors, yielding classifier
+\[h(x) = \begin{cases}
+        + & \text{ if } \alpha + \beta x > 0 \\
+        - & \text{ if } \alpha + \beta x < 0
+    \end{cases} = \text{sign}(\alpha + \beta x)\]
+following the convention that the normal vector $\beta$ is always chosen in the direction of the positive class.
+
+What is the distance between a point $x \in \R^d$ to the hyperplane $\alpha + \beta x = 0$? Precisely $\norm{\alpha + \beta x}$.
+
+Hence, the task moving forward is to find
+\[(\alpha, \beta) = \argmax \left(\min_{i=1:n} \abs{\alpha + \beta x_i}\right) \]
+
+\section{March 19}
+\tbf{Recall:} We were looking for \emph{maximum margin classifiers} for Support Vector Machines: On data $(X_1, Y_1), \dots, (X_n, Y_n)$, find
+\[(\hat \alpha, \hat \beta) = \argmax_{\alpha, \beta} \min_{i=1:n} \text{dist}(X_i, \{\alpha + \beta x =0 \})\]
+for all $i: (\alpha + \beta X_i) Y_i \geq 0$.
+
+Notice, the condition $(\alpha + \beta X_i) Y_i \geq 0$ is equivalent to the condition that the data is separable by the hyperplane $\alpha + \beta x = 0$.
+
+Equivalently,
+\[(\hat \alpha, \hat \beta) = \argmax_{\begin{subarray}{c}
+            \alpha, \beta \\
+            \norm{\beta} = 1\\
+            \forall i: (\alpha + \beta X_i) Y_i \geq 0
+        \end{subarray}} \min_{i=1:n} (\alpha + \beta X_i) Y_i = \argmax_{\alpha, \beta, \norm{\beta}=1} M\]
+subject to $Y_i(\alpha + \beta X_i) \geq M$ for all $M$ since
+\[\min \{a_1, \dots, a_n\} = \max M \quad a_i \geq M\; \forall M\]
+
+Is this a convex optimazation problem, i.e are we optimizing a convex function on a convex set?
+
+Already we run into difficulty with the condition $\norm B = 1$ since
+
+\begin{center}
+    \begin{tikzpicture}
+
+        \draw[blue, fill, fill opacity=0.1] (0, 0) circle (1);
+
+        \draw[blue]  (90:1) -- (10:1);
+        \node[blue] at (90:1) {$\bullet$};
+        \node[blue] at (10:1) {$\bullet$};
+
+        \node at (0, -2) {$\norm B \leq 1$ convex};
+    \end{tikzpicture}\hspace{1cm}
+    \begin{tikzpicture}
+
+        \draw[blue] (0, 0) circle (1);
+
+        \draw[red]  (90:1) -- (10:1);
+        \node[red] at (90:1) {$\bullet$};
+        \node[red] at (10:1) {$\bullet$};
+
+        \node at (0, -2) {$\norm B = 1$ not convex};
+    \end{tikzpicture}
+\end{center}
+
+Hence, we would like to reformulate the problem to remove the constraint $\norm B = 1$.
+
+Consider the adjusted constraint $Y_i(\tilde \alpha, \tilde \beta) = Y_i(\frac{\alpha}{M} + \frac{\beta}{M} X_i) \geq 1$ for all $i$. T
+
+Now
+\[\norm{\tilde B} = \sum_{i=1}^{d} \tilde \beta_i^2 = \frac{1}{M^2}\]
+so we can write
+\[(\tilde \alpha, \tilde \beta) = \argmax_{\tilde \alpha, \tilde \beta} \frac{1}{\sum_{i=1}^{d} \tilde \beta_i^2 } = \argmin_{\tilde \alpha, \tilde \beta} \sum_{i=1}^{d} \tilde \beta_i^2 \]
+subject to $Y_i(\tilde \alpha + \tilde \beta X_i) \geq 1\quad \forall i$
+
+And indeed this is a convex optimization problem since $(\alpha, \beta) \mapsto \sum_{i=1}^d \beta_i^2$ is convex and the domain $B= \{(a, b): Y_i(a + b X_i) \geq 1\}$ is convex
+
+\begin{proof}
+    \emph{Proof:} Pick $(\alpha, \beta) \in B$ and $(\alpha', \beta') \in B$. Then for all $\lambda \in (0, 1)$,
+    \[(\lambda a + (1-\lambda)a', \lambda \beta + (1- \lambda)\beta') \in B\]
+    since by assumption,
+    \begin{align*}
+        (\alpha, \beta) \in B \implies Y_i(\alpha + \beta X_i) \geq 1     & \implies \lambda Y_i(\alpha + \beta X_i) \geq \lambda         \\
+        (\alpha', \beta') \in B \implies Y_i(\alpha' + \beta' X_i) \geq 1 & \implies (1-\lambda) Y_i(\alpha' + \beta' X_i) \geq 1-\lambda
+    \end{align*}
+    \[\begin{array}{rl}
+            \lambda Y_i(\alpha + \beta X_i) \geq \lambda         \\
+            (1-\lambda) Y_i(\alpha' + \beta' X_i) \geq 1-\lambda \\ \hline
+            \lambda Y_i(\alpha + \beta X_i) + (1-\lambda) Y_i(\alpha' + \beta' X_i) \geq 1
+        \end{array}\]
+    so indeed,
+    \[Y_i(\alpha'' + \beta'' X_i) \geq 1\]
+\end{proof}
+
+Recall in the past to solve $\hat \theta = \argmin f(\theta)$ subject to $g(\theta) = 0$, we have used Lagrange multipliers:
+\[\argmin f(\theta) + \lambda g(\theta)\]
+
+For convex optimization problems, we introduce the \tbf{Lagrange Dual}:
+\begin{enumerate}
+    \item Find $\lambda = (\lambda_1, \dots, \lambda_n)$ subject to $\lambda_i \geq 0$
+    \item Find $\hat \alpha = \hat \alpha(\lambda),\; \hat \beta = \hat \beta(\lambda)$ that minimize
+          \[\frac{1}{2}\sum_{j=1}^d \hat \beta_j^2 + \sum_{i=1}^n \lambda (1 - Y_i(\alpha + \beta X_i)) \tag{$\star$}\]
+    \item Maximize ($\star$) over $\lambda$ to get $\hat \alpha, \beta$
+\end{enumerate}
+
+\chapter{Graphical Models}
+\section{March 31}
+\subsection{Gibbs Random Fields}
+
+\tbf{Definition:} Let $G = (V, E)$ be a graph. Then we say a subset $C \sub V$ is a \emph{clique} if $\forall i \neq j \in C$, $(i, j) \in E$.
+
+\emph{Example:} Let $G_1$ be given by
+\begin{center}
+    \begin{tikzpicture}[>= stealth, shorten >=2pt, line width =0.5 pt,
+            node distance=2 cm]
+        \node  at (0, 0) (one) {$ 1 $};
+        \node [right of=one] (two) {$ 2 $};
+        \node [below of=two] (three) {$ 3 $};
+
+        \draw (one) -- (two) -- (three);
+    \end{tikzpicture}
+\end{center}
+
+Then the cliques are $C_i = \{i\}$, $C_{12} = \{1, 2\}$, $C_{23} = \{2, 3\}$ but $C_{123} = \{1,2, 3\}$ is not a clique.
+
+\tbf{Definition:} A \emph{Gibbs random field (GRF)} on a graph $G$ is a set of random variables $\{X_v\}_{v \in V}$ with the distribution
+\[p(x) = \frac{1}{Z} \prod_{C \text{ sums over cliques in } G} \phi_c(x_c)\]
+for some function $\phi_c: \Omega_c \to  [0, \infty)$ clique functions and $Z$ a partition function.
+
+\tbf{Example:}
+
+\begin{center}
+    \begin{tikzpicture}[>= stealth, shorten >=2pt, line width =0.5 pt,
+            node distance=2 cm]
+        \node (one) at (0, 0) {$ 1 $};
+        \node[below right of=one] (two) {$ 2 $};
+        \node[above right of=one] (three) {$ 3 $};
+        \node[right of=three] (four) {$ 4 $};
+
+        \draw (one) -- (two) -- (three) -- (one);
+        \draw (three) -- (four);
+    \end{tikzpicture}
+\end{center}
+
+So for $C = \{1, 2, 3\}$ we have $X_C = (X_1, X_2, X_3)$ while for $C' = \{1, 2\}$ we have $X_{C'} = (X_1, X_2)$.
+
+Hence $(X_1, \dots, X_4)$ is a GRF on $G$ if
+\[p(x_1, x_2, x_3, x_4) = \frac{1}{Z} \phi_1(x_1) \phi_2(x_2) \phi_3(x_3) \phi_{12}(x_1, x_2) \phi_{13}(x_1, x_3) \phi_{23}(x_2, x_3) \phi_{34}(x_3, x_4) \phi_{123}(x_1, x_2, x_3)\]
+
+\tbf{Example:} Let
+\begin{itemize}
+    \item $X_1 \sim \text{Bernoulli}(1/2)$
+    \item $X_2 \sim \text{Bernoulli}(1/2), \; X_2 \perp X_1$
+    \item $X_3 = X_1 \oplus X_2 = \begin{cases}
+                  0 & X_1 = X_2    \\
+                  1 & X_1 \neq X_2
+              \end{cases}$
+    \item $X_4 = 1 - X_3$
+\end{itemize}
+
+\[p(1, 0, 1, 0) = p(X_1 =1, X_2 = 0, X_3 = 1, X_4 = 0) = p(X_1= 1, X_2 = 0) = \frac{1}{2} \cdot \frac{1}{2} = \frac{1}{4}\]
+and
+\[p(1, 0, 0, 0) = 0\]
+
+What graph does this respect?
+\[p(x_1, x_2, x_3, x_4) = \frac{1}{2} \cdot \frac{1}{2} \cdot \ind_{x_3 = x_1 \oplus x_2} \cdot \ind_{x_4 = 1 - x_3} = \frac{1}{Z} \phi_{123}(x_1, x_2, x_3) \phi_{34}(x_3, x_4)\]
+
+Hence this is a GRF with respect to any graph that contains
+\begin{center}
+    \begin{tikzpicture}[>= stealth, shorten >=2pt, line width =0.5 pt,
+            node distance=2 cm]
+        \node (one) at (0, 0) {$ 1 $};
+        \node[below right of=one] (two) {$ 2 $};
+        \node[above right of=one] (three) {$ 3 $};
+        \node[right of=three] (four) {$ 4 $};
+
+        \draw (one) -- (two);
+        \draw (one) -- (three);
+        \draw (two) -- (three);
+        \draw (three) -- (four);
+    \end{tikzpicture}
+\end{center}
+
+For example:
+\begin{center}
+    \begin{tikzpicture}[>= stealth, shorten >=2pt, line width =0.5 pt,
+            node distance=2 cm]
+        \node (one) at (0, 0) {$ 1 $};
+        \node[below right of=one] (two) {$ 2 $};
+        \node[above right of=one] (three) {$ 3 $};
+        \node[right of=three] (four) {$ 4 $};
+
+        \draw (one) -- (two);
+        \draw (one) -- (three);
+        \draw (two) -- (three);
+        \draw (three) -- (four);
+        \draw (two) -- (four);
+        \node[green!60!teal, node distance=1cm, below of=two] {$\checkmark$};
+    \end{tikzpicture}
+    \hspace{1cm}
+    \begin{tikzpicture}[>= stealth, shorten >=2pt, line width =0.5 pt,
+            node distance=2 cm]
+        \node (one) at (0, 0) {$ 1 $};
+        \node[below right of=one] (two) {$ 2 $};
+        \node[above right of=one] (three) {$ 3 $};
+        \node[right of=three] (four) {$ 4 $};
+
+        \draw (one) -- (three);
+        \draw (two) -- (three);
+        \draw (three) -- (four);
+        \node[red, node distance=1cm, below of=two] {$\times$};
+    \end{tikzpicture}
+\end{center}
+
+What would a GRF on the second graph look like?
+
+We know we must have a density of the form
+\[p(x_1, x_2, x_3, x_4) = \frac{1}{Z}\phi_1(x_1) \cdots \phi_4(x_4) \phi_{13}(x_1, x_3) \phi_{23}(x_2, x_3)\phi_{34}(x_3, x_4)\]
+but we cannot find functions $\phi_{13}(x_1, x_3) \phi_{23}(x_2, x_3)$.
+
+
+\tbf{Remark:} Neither the representation $p(x) = \frac{1}{Z} \prod_{C \text{ sums over cliques}} \phi_c(x_c)$ nor the graph representing a particular distribution must not be unique.
+
+\emph{Example:}
+
+\begin{enumerate}
+    \item Instead of
+          \[p(x_1, x_2, x_3, x_4) = \frac{1}{Z} \frac{1}{4} \ind_{x_3 = x_1 \oplus x_3} \cdot \ind_{x_4 = 1 - x_3}\]
+          we could write
+          \[p(x_1, x_2, x_3, x_4) = \frac{1}{Z} \frac{1}{4} \ind_{x_3 = x_1 \oplus x_2} \cdot \ind_{x_4 = 1 - x_1 \oplus x_2}\]
+          which would instead yield the graph
+
+          \begin{center}
+              \begin{tikzpicture}[>= stealth, shorten >=2pt, line width =0.5 pt,
+                      node distance=2 cm]
+                  \node (one) at (0, 0) {$ 1 $};
+                  \node[below right of=one] (two) {$ 2 $};
+                  \node[above right of=one] (three) {$ 3 $};
+                  \node[above right of=two] (four) {$ 4 $};
+
+                  \draw (one) -- (two);
+                  \draw (one) -- (three);
+                  \draw (two) -- (four);
+                  \draw (two) -- (three);
+                  \draw (one) -- (four);
+              \end{tikzpicture}
+          \end{center}
+    \item Working with our same example
+          \begin{center}
+              \begin{tikzpicture}[>= stealth, shorten >=2pt, line width =0.5 pt,
+                      node distance=2 cm]
+                  \node (one) at (0, 0) {$ 1 $};
+                  \node[below right of=one] (two) {$ 2 $};
+                  \node[above right of=one] (three) {$ 3 $};
+                  \node[right of=three] (four) {$ 4 $};
+
+                  \draw (one) -- (two) -- (three) -- (one);
+                  \draw (three) -- (four);
+              \end{tikzpicture}
+          \end{center}
+          suppose
+          \[p(x_1, x_2, x_3, x_4) = \frac{1}{Z} \abs{\cos(x_1 + x_2 + x_2)} x_2^{x_3}\]
+          but this could be parameterized $\frac{1}{Z} \phi_{123}(x_1, x_2, x_3) \phi_{23}(x_2, x_3)$ or $\frac{1}{Z} \phi_{123}(x_1, x_2, x_3)$.
+\end{enumerate}
+
+\tbf{Definition:} If $\phi_c > 0$ for all cliques $c$, we say the GRF is \emph{strictly positive}. Equivalently, $\forall x_1, \dots, x_M$, $p(x_1, \dots, x_M) > 0$
+
+As we will see, this is exactly the condition for a GRF to be a Markov random field.
+
+Note that GRFs are incredibly general. For any distribution $p(x), \; x \in \R^n$, $p(x)$ will be a GRF on the complete graph $K_n$ with $n$ vertices.
+
+\tbf{Example:} What is the minimal graph for a GRF on $X_1, \dots, X_n$ independent? Trivially,
+\[p(x_1, \dots, x_n) = \prod_{i=1}^n p(x_i)\]
+so the graph is $G = (V, E) = (\{1, \dots, n\}, \emptyset)$.
+
+\tbf{Example (Markov Chain):} A Markov chain satisfies
+\[p(x_1, \dots, x_n) = p(x_1) p(x_2 \; | \; x_1) p(x_3 \; | \; x_2) \cdots p(x_n \; | \; x_{n-1})\]
+
+Its minimal graph is the chain
+\begin{center}
+    \begin{tikzpicture}[>= stealth, shorten >=2pt, line width =0.5 pt,
+            node distance=2 cm]
+        \node  at (0,0) (one) {$ 1 $};
+        \node [right of=one] (two) {$ 2 $};
+        \node [right of=two] (three) {$ 3 $};
+        \node [right of=three] (dots) {$\dots$};
+        \node [right of=dots] (n) {$n$};
+
+        \draw (one) -- (two) -- (three) -- (dots) -- (n);
+    \end{tikzpicture}
+\end{center}
+
+\section{April 2}
+\tbf{Recall:} $(X_1, \dots, X_n)$ is a \emph{Gibbs Random Field} wrt a graph $F$ if
+\[p(x_1, \dots, x_n) = \frac{1}{Z}\prod_{\text{cliques } c \sub G} \phi_c(x_c)\]
+for clique functions $\phi_c$ and $Z$ a partition function, i.e. if $p(x_1, \dots, x_n)$ factors on $G$.
+
+\tbf{Example (Hidden Markov Model):} Suppose we know our friend's behavior very well. Based on \emph{observations} (e.g. they choose to go for a walk, shop, or clean) we can guess a hidden state unknown to us (e.g. it is sunny or it is rainy).
+
+Suppose the transition probability is given by
+\[\begin{array}{cc}
+                         & \begin{array}{cc}
+                               \text{Sunny} & \text{Rainy}
+                           \end{array} \\
+        \begin{array}{c}
+            \text{Sunny} \\
+            \text{Rainy}
+        \end{array} & \left(\begin{array}{cc}
+                                    0.7 & 0.3 \\
+                                    0.4 & 0.6
+                                \end{array}\right)
+    \end{array}\]
+
+Then $\{(X_1, Y_1), \dots, (X_n, Y_n)\}$ is a Markov Chain with with emission probabilities
+
+\qquad \begin{tabular}{r|ccc}
+    $\P(Y_i = y_i \; | \; X_i= x_i)$ & Walk & Shop & Clean \\ \hline
+    Sunny                            & 0.6  & 0.3  & 0.1   \\
+    Rainy                            & 0.1  & 0.4  & 0.5
+\end{tabular}
+
+Further, $(X_1, \dots, X_n, Y_1, \dots, Y_n)$ is a GRF wrt $G$.
+
+\begin{center}
+    \begin{tikzpicture}[>= stealth, shorten >=2pt, line width =0.5 pt,
+            node distance=2 cm]
+        \node (x1) at (0, 0) {$X_1$};
+        \node (x2) [right of=x1] {$X_2$};
+        \node (x3) [right of=x2] {$X_3$};
+        \node (dots) [right of=x3] {$\dots$};
+        \node (xn) [right of=dots] {$X_n$};
+
+        \node (y1) [below of=x1] {$Y_1$};
+        \node (y2) [below of=x2] {$Y_2$};
+        \node (y3) [below of=x3] {$Y_3$};
+        \node (yn) [below of=xn] {$Y_n$};
+
+        \draw (x1) -- (x2) -- (x3) -- (dots) -- (xn);
+
+        \foreach \i in {1, 2, 3, n} {
+                \draw (x\i) -- (y\i);
+            }
+
+        %\node [node distance=1cm, left of=x1] {Weather};
+        %\node [node distance=1cm, left of=y1] {Activity};
+    \end{tikzpicture}
+\end{center}
+
+If we assume $\P(X_1) = (0.2, 0.8)$,
+\begin{align*}
+    \P(\text{Sunny}, \text{Rainy}, \text{Walk}, \text{Shop}) & = \P(X_1 = \text{Sunny}, X_2 = \text{Rainy}, Y_1 = \text{Walk}, Y_2 = \text{Shop})                                                                                                            \\
+                                                             & = \P(X_1 = \text{Sunny}) \cdot \P(X_2 = \text{Rain} \; | \; X_1 = \text{Sunny}) \cdot \P(Y_1 = \text{Walk} \; | \; X_1 = \text{Sunny}) \cdot \P(Y_2 = \text{Shop} \; | \; X_2 = \text{Rainy}) \\
+                                                             & =0.2 \cdot 0.3 \cdot 0.6 \cdot 0.4                                                                                                                                                            \\
+                                                             & = 0.0144
+\end{align*}
+
+From which we deduce
+\[p(x_1, \dots, x_n, y_1, \dots, y_n) = p(x_1) \cdot p(x_2 \; | \; x_1) \cdots p(x_{n-1} \; | \; x_n) \cdot p(y_1 \; | \; x_1) \cdots p(y_n \; | \; x_n)\]
+
+\tbf{Example:}
+Let $X_1, X_2 \iid \text{Bernoulli}(1/2)$ and $X_3 = X_1 \oplus X_2 = \begin{cases}
+        0 & X_1 = X_2    \\
+        1 & X_1 \neq X_2
+    \end{cases}$.
+
+Is $(X_1, X_2, X_3)$ a GRF wrt the following?
+
+\begin{center}
+    \begin{tikzpicture}[-> , >= stealth, shorten >=2pt, line width =0.5 pt,
+            node distance=2 cm]
+        \node (x1) at (0, 0) {$X_1$};
+        \node (x2) [right of=x1] {$X_2$};
+        \node (x3) [above right of=x1] {$X_3$};
+
+        \draw (x1) -- (x3);
+        \draw (x2) -- (x3);
+    \end{tikzpicture}
+\end{center}
+
+We know it respects $G$ iff
+\[p(x_1, x_2, x_3)  = \frac{1}{Z} f(x_1, x_3) \cdot g(x_2, x_3)\]
+
+We can calculate:
+\begin{align*}
+    p(x_1, x_2, x_3) & = \P(X_1 = x_1, X_2 = x_2, X_3 = x_3)                                      \\
+                     & = \frac{1}{2} \cdot \frac{1}{2} \P(X_3 = x_3 \; | \; X_1 = x_1, X_2 = x_2) \\
+                     & = \frac{1}{4} \ind_{x_3 = x_1 \oplus x_2}
+\end{align*}
+
+Assume $\ind_{x_3 = x_1 \oplus x_2} = f(x_1, x_2) \cdot g(x_2, x_3)$.
+
+But if $g(x_2, x_3) = 0$, then $\ind_{x_3 = x_1 \oplus x_2} = 0$ regardless of $x_1$. But by definition, for any value of $x_3 = x_1 \oplus x_2$, there exists a value of $x_1$ such that $\ind_{x_3 = x_1 \oplus x_2} = 1$. Contradiction. In particular, this means that the smallest possible graph for $(X_1, X_2, X_3)$ is the complete graph $K_3$.
+
+\tbf{Example (Multinomial):} Roll a die 5 times giving $X_1, \dots, X_5$, the number of times we get each face. We know that $X_1 + \dots + X_6 = 5$
+
+Which graph does this respect?
+\[p(x_1, \dots, x_6) = \frac{5!}{x_1! \cdots x_6!} \cdot \frac{1}{6^5} \cdot \ind_{x_1 + \dots + x_6 = 5}\]
+
+As before, we cannot factor this indicator, so the minimal graph is $K_6$.
+
+\tbf{Example (Naive Bayes):} Run $d$ tests to classify $Y \in \{1, \dots, s\}$ giving data $(X_1, \dots, X_d, Y)$.
+
+
+\[f(x_1, \dots, x_d, y) = p(y) p(x_1, \dots, x_d \; | \; y) \overset{NB}{=} p(y) \prod_{i=1}^d f_y(x_i) \]
+
+
+\begin{exercise}
+    \textbf{Exercise:} What is the minimal graph for a Naive Bayes model?
+
+    \div
+
+    \tbf{Solution:} By the Naive Bayes' assumption, each test is independent and only depends on the class.
+    \begin{center}
+        \begin{tikzpicture}[-> , >= stealth, shorten >=2pt, line width =0.5 pt,
+                node distance=2 cm]
+            \node (x1) at (0, 0) {$X_1$};
+            \node (x2) [right of=x1] {$X_2$};
+            \node (x3) [right of=x2] {$X_3$};
+            \node (dots) [right of=x3] {$\dots$};
+            \node (xn) [right of=dots] {$X_d$};
+
+            \node (y) [above of=x3] {$Y$};
+
+            \foreach \x in {1, 2, 3, n} {
+                    \draw (x\x) -- (y);
+                }
+        \end{tikzpicture}
+    \end{center}
+
+
+\end{exercise}
+
+\section{April 4}
+\subsection{Independence}
+
+Suppose $(X_v)_{v \in V(G)}$ is GRF wrt $G$ where $G$ is partitioned into two disjoint sets $A$ and $B$ ($V(G) = A \cup B$) with no edges between them
+
+\begin{center}
+    \begin{tikzpicture}
+        \draw[fill=red, fill opacity=0.1] (0, 0) ellipse (1 and 2) node [black, opacity=1]{A};
+        \draw[fill=blue, fill opacity=0.1] (3, 0) ellipse (1 and 2) node[black, opacity=1]{B};
+    \end{tikzpicture}
+\end{center}
+then $(X_v)_{v \in A} \perp (X_u)_{u \in B}$ so we say $(X_v)_{v \in A}$ and $(X_u)_{u \in B}$ are \emph{independent}.
+
+\tbf{Example:} Let $X_1, \dots, X_5$ respect
+
+\begin{center}
+    \begin{tikzpicture}[node distance=2cm]
+        \node (1) at (0,0) {1};
+        \node[above right of=1] (2) {2};
+        \node[below right of=1] (3) {3};
+
+        \node[right of=2] (4) {4};
+        \node[below of=4] (5) {5};
+
+        \draw (1) -- (2) -- (3) -- (1);
+        \draw (4) -- (5);
+    \end{tikzpicture}
+\end{center}
+
+\begin{tbox}{\textbf{Claim:} $(X_1, X_2, X_3) \perp (X_4, X_5)$}
+    \emph{Proof:} $x_A \perp x_B$ iff $p(x_A, x_B) = p(x_A)p(x_B)$.
+
+    We have
+    \[p(x_A, x_B) = \frac{1}{Z} \prod_{c \text{ cliques}} f_c(x_c)\]
+    by definition of GRF.
+
+    Notice that any clique in $A$ must be entirely contained in $A$ (and similarly for $B$). Hence,
+    \begin{align*}
+        p(x_A, x_B) & = \frac{1}{Z} \prod_{\begin{subarray}{gather*}
+                                                   c \text{ cliques}\\
+                                                   c \sub A
+                                               \end{subarray}} f_c(x_c) \cdot \prod_{\begin{subarray}{gather*}
+                                                                                         c \text{ cliques}\\
+                                                                                         c \sub B
+                                                                                     \end{subarray}} f_c(x_cz) \\
+                    & = \frac{1}{Z} f_A(x_A) \cdot f_B(x_B)
+    \end{align*}
+
+    But since $Z$ is a normalization factor,
+    \[Z = \sum_{x_A} \sum_{x_B} f_A(x_A) f_B(x_B) = \sum_{x_A} f_A(x_A) \left[\sum_{x_B} f_B(x_B)\right]= \left[\sum_{x_A} f_A(x_A)\right] \left[\sum_{x_B} f_B(x_B)\right] = Z_A \cdot Z_B\]
+
+    So
+    \[p(x_A, x_B) = \left[\frac{1}{Z} f_A(x_A)\right] \left[\frac{1}{Z_B} f_B(x_B)\right] = p_A(x_A) \cdot p_B(x_B)\]
+    for pmfs $p_A, p_B$.
+
+\end{tbox}
+
+\tbf{Example:} Consider a case with three sets $A, B, D$ with no edges between $A, B$ but edges between $A, D$ and $B, D$. Now is it true that $A \perp B$?
+
+\begin{center}
+    \begin{tikzpicture}
+        \draw[fill=red, fill opacity=0.1] (0, 0) ellipse (0.5 and 1) node [black, opacity=1]{A};
+        \draw[fill=blue, fill opacity=0.1] (3, 0) ellipse (0.5 and 1) node[black, opacity=1]{B};
+        \draw[fill=mygreen, fill opacity=0.1] (2, 2) ellipse (1.5 and 0.5) node[black, opacity=1]{D};
+
+        \draw (0, 0.75) -- (1, 2);
+        \draw (3, 0.75) -- (3, 2);
+    \end{tikzpicture}
+\end{center}
+
+Consider a simple case:
+\begin{center}
+    \begin{tikzpicture}[node distance=2cm]
+        \node (1) at (0,0) {1};
+        \node[right of=1] (2) {2};
+        \node[right of=2] (3) {3};
+
+        \draw (1) -- (2) -- (3);
+    \end{tikzpicture}
+\end{center}
+
+If this is a Markov chain, then there are no edges between $X_1$ and $X_2$ but there is certainly still a dependence between them.
+
+Is there a sufficient condition to conclude $A \perp B$? Clearly, we just need there to not exist a path between $A$ and $B$.
+
+\begin{proof}
+    \emph{Proof:} Suppose there is no path between $A$ and $B$.
+
+    Let
+    \begin{align*}
+        \tilde A & = \{v: \exists \text{ path from } v \text{ to } A\} \\
+        \tilde B & = V \setminus \tilde A
+    \end{align*}
+
+    Clearly, $\tilde A \cap \tilde B = \emptyset$ and $A \sub \tilde A$, $B \sub \tilde B$ since they share no edges.
+
+    But $X_{\tilde A} \perp X_{\tilde B} \implies X_A \perp X_B$.
+\end{proof}
+
+To summarize:
+\begin{itemize}
+    \item No edges $\notimplies$ independence
+    \item Independence $\notimplies$ no edges (even on a minimal graph!)
+    \item No path $\implies$ independence
+\end{itemize}
+
+\subsection{Conditioning}
+
+Suppose $(X_v)_{v \in V}$ respects $G$ conditioned on $(X_v)_{v \notin A}$.
+\begin{center}
+    \begin{tikzpicture}
+        \draw (0, 0) circle (2);
+        \node[right] at (2, 0) {$G$};
+
+        \draw (0.5, 0) circle (1) node {$A$};
+    \end{tikzpicture}
+\end{center}
+
+\tbf{Conditioning:} What graph does $(X_v)$ respect?
+
+\tbf{Marginalizing:} What graph does $(X_A)$ respect?
+
+\tbf{Example:} Let $X \sim \text{Bernoulli}(1/2)$ and $Y = 1 - X$.
+\begin{enumerate}
+    \item Conditioned on $X$, what is the distribution of $Y$? Answer: fixed point, since there is no randomness
+    \item What is the marginal distribution of $Y$? Answer: $\text{Bernoulli}(1/2)$
+\end{enumerate}
+
+\tbf{Example:} Let $G$ be
+\begin{center}
+    \begin{tikzpicture}[node distance=1cm]
+        \node (1) at (0,0) {1};
+        \node[above right of=1] (2) {2};
+        \node[below right of=2] (3) {3};
+
+        \draw (1) -- (2) -- (3);
+    \end{tikzpicture}
+    and define $A = \{1, 3\}$.
+
+    Conditioned on $X_2$, what graph does $(X_n)$ represent? What graph respects the marginal distribution of $X_A$?
+
+    \emph{Answer:}
+
+    \begin{itemize}
+        \item The conditioned graph is
+
+              \begin{center}
+                  \begin{tikzpicture}
+                      \node (1) at (0, 0) {$\bullet$};
+                      \node (2) at (2, 0) {$\bullet$};
+
+                      \node[below left of=1] {$1$};
+                      \node[below right of=2] {$3$};
+
+                  \end{tikzpicture}
+              \end{center}
+
+        \item The marginal graph is
+              \begin{center}
+                  \begin{tikzpicture}
+                      \node (1) at (0, 0) {$\bullet$};
+                      \node (2) at (2, 0) {$\bullet$};
+
+                      \node[below left of=1] {$1$};
+                      \node[below right of=2] {$3$};
+
+                      \draw (1) -- (2);
+                  \end{tikzpicture}
+              \end{center}
+    \end{itemize}
+\end{center}
+
+\tbf{Remark:} While this marginal graph works, it is the worst case graph. i.e., in most cases there is a smaller graph possible.
+
+\begin{proposition}
+    \textbf{Theorem:}
+    \begin{itemize}
+        \item Conditioning: $G_1$ is the reduced subgraph of $G$ on $A$:
+              $G_1 = (A, E_A)$ where $E_A = E(G) \cap (A \times A)$. (That is, edges in $G_1$ are simply edges in $G$ restricting on $A$.
+        \item Marginalizing: $G_2 = (A, E_2(A))$ defined by $(u, v) \in E_2(A)$ if $u \sim v$ or $u, v$ connected by a path outside $A$.
+    \end{itemize})
+\end{proposition}
+
+\tbf{Example:} Let $G$ be
+\begin{center}
+    \begin{tikzpicture}[node distance=1cm]
+        \node (1) at (0, 0) {1};
+        \node[right of=1] (2) {2};
+        \node[below of=1] (3) {3};
+        \node[right of=2] (4) {4};
+        \node[below of=4] (5) {5};
+
+        \draw (5) -- (1) -- (2) -- (4) -- (3);
+    \end{tikzpicture}
+\end{center}
+
+Then for $A = \{1, 2, 3\}$,
+
+\begin{center}
+    \begin{tabular}{c|c}
+        $G_1$                                  & $G_2$            \\ \hline
+        \begin{tikzpicture}[node distance=1cm]
+            \node (1) at (0, 0) {1};
+            \node[right of=1] (2) {2};
+            \node[below right of=1] (3) {3};
+
+            \draw (1) -- (2);
+        \end{tikzpicture} & \begin{tikzpicture}[node distance=1cm]
+                                \node (1) at (0, 0) {1};
+                                \node[right of=1] (2) {2};
+                                \node[below right of=1] (3) {3};
+
+                                \draw (1) -- (2) -- (3);
+                            \end{tikzpicture}
+    \end{tabular}
+\end{center}
+
+\section{April 7}
+
+\begin{tbox}{\textbf{Theorem:} Let  $(X_v)_{v \in G}$ be aGRF wrt a graph $G$ if $A \sub V(G)$. Conditioned on $X_{A^c}$, the rv $X_A$ is a GRF wrt the induced graph on $A$, i.e. $v \overset{G'}{\sim} u$ in this graph iff $v, u \in A$ and $v\overset{G}{\sim} u$. }
+    \emph{Example:} Let $G$ be
+    \begin{center}
+        \begin{tikzpicture}[node distance=1cm]
+            \node (1) at (0, 0) {1};
+            \node[above right of=1] (3) {3};
+            \node[below right of=1] (2) {2};
+        \end{tikzpicture}
+    \end{center}
+    and $A = \{1, 2\}$ so $G = (\{1, 2\}, \emptyset)$.
+
+    \emph{Proof for the example:} Take $X_1, X_2, X_3$ from the joint distribution. Then
+    \begin{align*}
+        p(x_1, x_2, x_3) & = \frac{1}{Z}\phi_1(x_1) \phi_2(x_2) \phi_{12}(x_1, x_2) \phi_{13}(x_1, x_3) \phi_{23}(x_2, x_3) \\
+                         & = \frac{1}{Z} f_{13}(x_1, x_3) \cdot f_{23}(x_2, x_3)
+    \end{align*}
+
+    \div
+
+    \emph{Proof for the General Case:} Suppose $(X_v)$ is a GRF wrt $G$ so
+    \[p(x_1, \dots, x_n) = \frac{1}{Z} \prod_{c\text{ cliques}} \phi_c(x_c) = \frac{1}{Z} \prod_{c \text{ cliques}} \phi_c(x_{A \cap C, x_{A^c \cap C}})\]
+    for any $C$ satisfying $C = (A \cap C) \cup (A^c \cap C)$ (i.e. the measurable sets $C$)
+
+    Fix $x_{A^c}$ so
+    \[\P_{x_A \; | \; X_{A^c = x_{A^c}}}(x_A) = \frac{\P(X_A = x_A, X_{A^c} = x_{A^c})}{\P(X_{A^c} = x_{A^c})}\]
+    but notice the denominator does not depend on $x_A$ so we can call it a constant $Z'$.
+
+    Then,
+    \begin{align*}
+        \frac{\P(X_A = x_A, X_{A^c} = x_{A^c})}{Z'} & = \frac{\frac{1}{Z} \prod_{c \text{ cliques}} \phi_c(x_{A \cap C}, x_{A^c \cap C})}{Z'}                                                                                                                 \\
+                                                    & = \frac{1}{Z \cdot Z'} \overbrace{\left[\prod_{\text{cliques } C \sub A^c} \phi_c(c_{A^c \cap C})\right]}^{Z''}\left[\prod_{\text{cliques } C \not\sub A^c} \phi_c(x_{A \cap C}, x_{A^c \cap C})\right] \\
+                                                    & = \frac{Z''}{ZZ'} \prod_{\text{cliques } C \cap A \neq \emptyset} \phi_c(x_{A \cap C}, x_{A^c \cap C})
+    \end{align*}
+
+    \begin{center}
+        \begin{tikzpicture}[node distance=1cm]
+            \draw (0, 0) circle (2);
+            \draw (0, -2) -- (0, 2);
+
+            \draw (-0.5, -0.5) rectangle (0.5, 0.5);
+            \draw (-0.5, -0.5) -- (0.5, 0.5);
+            \draw (0.5, -0.5) -- (-0.5, 0.5);
+
+            \node at (-1, 0) {$A$};
+            \node at (1, 0) {$A^c$};
+        \end{tikzpicture}
+    \end{center}
+
+    Since $\phi_c(x_{A\cap C}, x_{A^c \cap C})$ is a function on the clique $C \cap A$, $p(x_A)$ can be factored into cliques.
+
+\end{tbox}
+
+\tbf{Definition 1:} $(X_v)$ is a GRF wrt $G$ if
+\[p(x_v) = \frac{1}{Z} \prod_{c \text{ cliques}} \phi_c(x_c)\]
+
+\tbf{Definition 2:} $(X_v)$ is a GRF wrt $G$ if
+\[p(x_v) = \frac{1}{Z} \prod_{c \text{ maximum cliques}} \phi_c(x_c)\]
+
+Hence,
+\begin{align*}
+    p(x_1, x_2 \; | \; x_3) & = \frac{1}{Z'_{x_3}} f_{13, x_3}(x_1) \cdot f_{23, x_3}(x_2) \\
+                            & = \frac{\P(X_1= x_1, X_2= x_2, X_3 = x_3)}{\P(X_3 = x_3)}
+\end{align*}
+
+\emph{Example:}
+\begin{align*}
+    X_1 & \sim \text{Bernoulli}(1/2)     \\
+    X_3 & = X_1 + \text{Bernoulli}(0.01) \\
+    X_2 & = X_3 + \text{Bernoulli}(0.9)  \\
+\end{align*}
+gives
+\begin{align*}
+    X_1 & \sim \begin{cases}
+                   0 & \text{with prob } 0.5 \\
+                   1 & \text{with prob } 0.5
+               \end{cases}         \\
+    X_3 & = \begin{cases}
+                0 & \frac{1}{2} \cdot \frac{99}{100} \\
+                1 & \frac{1}{2}                      \\
+                2 & \frac{1}{2} \cdot \frac{1}{100}
+            \end{cases} \\
+    X_2 & = \begin{cases}
+                0 \\
+                1 \\
+                2 \\
+                3
+            \end{cases}
+\end{align*}
+
+\[p(x_1, x_2, x_3) = \frac{1}{Z} f_{13}(x_3, x_1) \cdot f_{23}(x_2, x_3)\]
+
+Conditioned on $X_3 = 0$,
+\[p(x_1, x_2) = p_{x_3=0}(0, 1) = \frac{\P(X_1 =0, X_2 = 1, X_3 = 0)}{\P(X_3 = 0)} = \frac{\P(0, 1, 0)}{\sum_{x, y} \P(x, y, 0)} = \frac{1}{Z}f_{13}(0, 0) = \frac{f_{23}(1, 0)}{Z'}\]
+
+\tbf{Example (Naive Bayes):}
+
+\begin{center}
+    \begin{tikzpicture}[node distance=2cm]
+        \node (y) at (0, 0) {$y$};
+        \node[above right of=y] (1) {$X_1$};
+        \node[right of=y, node distance=1.5cm] (2) {$\vdots$};
+        \node[below right of=y] (d) {$X_d$};
+
+        \foreach \i in {1, 2, d} {
+                \draw (y) -- (\i);
+            }
+    \end{tikzpicture}
+\end{center}
+
+Conditioned on $Y$, the distribution of $X_1, \dots, X_d$ is $(X_1, \dots, X_d) \sim \text{Multinomial}(p_1, \dots, p_d)$.
+
+\tbf{Example (Hidden Markov Model):}
+
+\begin{center}
+    \begin{tikzpicture}[node distance=2cm]
+        \node (x1) at (0, 0) {$X_1$};
+        \node[right of=x1] (x2) {$X_2$};
+        \node[right of=x2] (x3) {$X_3$};
+        \node[right of=x3] (dots) {$\dots$};
+        \node[right of=dots] (xd) {$X_d$};
+
+        \node[below of=x1] (y1) {$Y_1$};
+        \node[below of=x2] (y2) {$Y_2$};
+        \node[below of=x3] (y3) {$Y_3$};
+        \node[below of=xd] (yd) {$Y_d$};
+
+        \draw (x1) -- (x2) -- (x3) -- (dots) -- (xd);
+        \foreach \i in {1, 2, 3, d} {
+                \draw (x\i) -- (y\i);
+            }
+    \end{tikzpicture}
+\end{center}
+
+Conditioned on $Y_1, \dots, Y_d$, the distribution of $X_1, \dots, X_d$ is
+
+\begin{center}
+    \begin{tikzpicture}[node distance=2cm]
+        \node (x1) at (0, 0) {$X_1$};
+        \node[right of=x1] (x2) {$X_2$};
+        \node[right of=x2] (x3) {$X_3$};
+        \node[right of=x3] (dots) {$\dots$};
+        \node[right of=dots] (xd) {$X_d$};
+
+        \draw (x1) -- (x2) -- (x3) -- (dots) -- (xd);
+    \end{tikzpicture}
+\end{center}
+
+Conditioned on $X_1, \dots, X_d$ the distribution of $Y_1, \dots, Y_d$ is
+
+\begin{center}
+    \begin{tikzpicture}[node distance=2cm]
+        \node (y1) at (0, 0) {$Y_1$};
+        \node[right of=y1] (y2) {$Y_2$};
+        \node[right of=y2] (y3) {$Y_3$};
+        \node[right of=y3] (dots) {$\dots$};
+        \node[right of=dots] (yd) {$Y_d$};
+    \end{tikzpicture}
+\end{center}
+that is, they are independent.
+
+\begin{tbox}{\textbf{Theorem (Marginalizing):} Let the marginal distribution of $(X_A)$ be a GRF wrt $G''=(A, E'')$. Then for $u, v \in A$,
+        \[u \overset{E''}{\sim} v \impliedby \begin{cases}
+                u \overset{G}{\sim} v \\
+                \text{there exists a path between } u \text{ and } v \text{ entirely in } A^c
+            \end{cases}\]  }
+    \emph{Example:}
+
+    \begin{center}
+        \begin{tikzpicture}[node distance=2cm]
+            \node (1) at (0, 0) {1};
+            \node[above right of=1] (2) {2};
+            \node[below right of=2] (3) {3};
+            \node[above right of=3] (5) {5};
+            \node[above of=2] (4) {4};
+
+            \draw (1) -- (2) -- (3) -- (5) -- (4) -- (1);
+        \end{tikzpicture}
+    \end{center}
+    with $A = \{1, 2, 3, 5\}$ we have the subgraph
+
+    \begin{center}
+        \begin{tikzpicture}[node distance=2cm]
+            \node (1) at (0, 0) {1};
+            \node[above right of=1] (2) {2};
+            \node[below right of=2] (3) {3};
+            \node[above right of=3] (5) {5};
+
+            \draw (1) -- (2) -- (3) -- (5) to[bend left, out=90, in=90] (1);
+        \end{tikzpicture}
+    \end{center}
+
+    \emph{Proof of theorem for the example:}
+    \begin{align*}
+        p(x_1, x_2, x_3, x_5)   & = \sum_{x_4} p(x_1, x_2, x_3, x_4, x_5)                                                                                   \\
+                                & = \sum_{x_4} \frac{1}{Z} \phi_{12}(x_1, x_2) \phi_{23}(x_2, x_3) \phi_{35}(x_3, x_5) p_{14}(x_1, x_4) \phi_{45}(x_4, x_5) \\
+        \sum_{x_4} p_{14}p_{45} & = f(x_1, x_5)
+    \end{align*}
+
+    \div
+
+    \emph{Proof Sketch:}
+    \[p_{X_A}(x_A) = \P(X_A = x_A) = \sum_{x_{A^c}} \P(x_A, x_{A^c})\]
+    but we know
+    \begin{align*}
+        p(x_1, \dots, x_n) & = \frac{1}{Z} \prod_{\text{cliques } c \sub G} \phi_c(x_c)                                         \\
+                           & = \frac{1}{Z} \sum_{x_{A^c}} \prod_{\text{cliques } c \sub G} \phi_c(x_{c \cap A}, x_{C \cap A^c}) \\
+                           & \overset{?}{=} \frac{1}{Z'} \prod_{\text{cliques } c \sub G''} \phi_c(x_{C \cap A})
+    \end{align*}
+
+    \begin{exercise}
+        \textbf{Exercise:} Prove the theorem for the general case.
+    \end{exercise}
+\end{tbox}
+
+\tbf{Example:} For
+
+\begin{center}
+    \begin{tikzpicture}[node distance=1cm]
+        \draw (0, -1) circle (2);
+
+        \draw (-0.5, -0.5) rectangle (0.5, 0.5);
+        \draw (-0.5, -0.5) -- (0.5, 0.5);
+        \draw (0.5, -0.5) -- (-0.5, 0.5);
+
+        \node[below left] at (-0.5, -0.5) {1};
+        \node[above left] at (-0.5, 0.5) {1};
+        \node[below right] at (0.5, -0.5) {1};
+        \node[above right] at (0.5, 0.5) {1};
+    \end{tikzpicture}
+\end{center}
+and fixed $c$,
+\[\sum_{x_{34}} \phi_c(x_{12}, x_{34}) = \phi_{12}(x_{12})\]
+
+\tbf{Example (Naive Bayes):} The marginal distribution of $(X_i)$ is the complete graph
+
+\begin{center}
+    \begin{tikzpicture}[node distance=2cm]
+        \node (y) at (0, 0) {$y$};
+        \node[above right of=y] (1) {$X_1$};
+        \node[right of=y, node distance=1.5cm] (2) {$\vdots$};
+        \node[below right of=y] (d) {$X_d$};
+
+        \foreach \i in {1, 2, d} {
+                \draw (y) -- (\i);
+            }
+    \end{tikzpicture}
+\end{center}
+
+\tbf{Example (Hidden Markov Model):} If we were to condition on the observations $(Y_i)$, then we would have a Markov chain. However, the marginal distribution on $Y_1, \dots, Y_d$ is the complete graph
+
+\subsection{Markov Random Fields}
+\tbf{Markov Random Field:} $(X_v)_{v \in G}$ is a \emph{Markov Random Field} (MRF) if
+\[\P(X_i = x_i \; | \; X_{i^c} = x_{i^c}) = \P(X_i = x_i \; | \; x_{N_i} = x_{N_i})\]
+where $N(i) = \{j: (j, i) \in E\}$ is the neighborhood of $i$.
+
+\tbf{Example:}
+
+\begin{center}
+    \begin{tikzpicture}[node distance=2cm]
+        \node (1) at (0, 0) {1};
+        \node[above right of=1] (2) {2};
+        \node[below right of=1] (3) {3};
+        \node[above right of=3] (4) {4};
+
+        \draw (1) -- (2) -- (3) -- (1);
+        \draw (3) -- (4);
+    \end{tikzpicture}
+\end{center}
+
+\[\P(X_1 = x_1 \; | \; X_2 = x_2, X_3 = x_3, X_4 = x_4) = \P(X_1 = x_1 \; | \; X_2= x_2, X_3 = x_3)\]
+
+\begin{tbox}{\textbf{Theorem (Hammersley-Clifford):} Assume $(X_v)$ is positive (i.e. $p(x_1, \dots, x_n) > 0$ for all $x_1, \dots, x_n \in \Omega_1 \times \dots \times \Omega_n$). Then $X$ is a Gibbs Random Field iff it is a Markov Random Field. }
+    \emph{Proof:} (GRF $\implies$ MRF) Conditioned on $X_{N(i)}$, the distribution of is $A = \{i\} \cup \{j: j \notin N(i)\}$ from which it immediately follows that $i \perp \{j: j \notin N(i)\}$ hence
+    \[\P(X_i = x_i \; | \; X_{N_i}, \dots) =\P(X_i = x_i \; | \; X_{N_i})\]
+
+    \div
+
+    The other direction is highly non-trivial.
+\end{tbox}
+
+\subsection{Computing Grpahical Models}
+To use any graphical model
+\[p(x_1, \dots, x_n) = \frac{1}{Z} \prod_c \phi_c(x_c)\]
+we need to know
+\[Z = \sum_{x_1, \dots, x_n} \prod_c \phi_c(x_c)\]
+which is very difficult in practice.
+
+\tbf{Example:}
+
+\begin{center}
+    \begin{tikzpicture}[node distance=2 cm]
+        \node (1) at (0, 0) {1};
+        \node[right of=1] (2) {2};
+        \node[right of=2] (3) {3};
+        \node[below of=$2!0.5!3$] (4) {4};
+        \node[right of=3] (5) {5};
+        \node[right of=5] (6) {6};
+
+        \draw (1) -- (2) -- (3) -- (5) -- (6);
+        \draw (2) -- (4) -- (3);
+    \end{tikzpicture}
+\end{center}
+
+Recall that we can specify $p$ by the product of all the cliques or just the maximum cliques:
+\[p(x_1, \dots, x_6) = \frac{1}{Z} \phi_{12}(x_{12}) \phi_{234}(x_{234}) \phi_{25}(x_{35}) \phi_{56}(x_{56})\]
+
+Since $\sum_{x_1, \dots, x_6} p = 1$,
+\begin{align*}
+    Z & = \sum_{x_1, \dots, x_6} \phi_{12}(x_{12}) \phi_{234}(x_{234}) \phi_{25}(x_{35}) \phi_{56}(x_{56})                                                                                             \\
+      & = \sum_{x_6} \sum_{x_5} \sum_{x_4} \sum_{x_3} \sum_{x_2} \sum_{x_1} \phi_{12}(x_{12}) \phi_{234}(x_{234}) \phi_{25}(x_{35}) \phi_{56}(x_{56})                                                  \\
+      & = \sum_{x_6} \left(\sum_{x_5} \phi_{56}(x_{56}) \left(\sum_{x_3} \phi_{35}(x_{35}) \left(\sum_{x_4, x_2} \phi_{234}(x_{234}) \left(\sum_{x_1} \phi_{12}(x_{12})\right) \right) \right) \right) \\
+      & = \sum_{x_6} \left(\sum_{x_5} \phi_{56}(x_{56}) \left(\sum_{x_3} \phi_{35}(x_{35}) \left(\sum_{x_4, x_2} \phi_{234}(x_{234}) T_1(x_2)\right) \right) \right)                                   \\
+      & = \sum_{x_6} \left(\sum_{x_5} \phi_{56}(x_{56}) \left(\sum_{x_3} \phi_{35}(x_{35}) T_2(x_3) \right)\right)                                                                                     \\
+      & = \sum_{x_6} \left(\sum_{x_5} \phi_{56}(x_{56}) T_3(x_5)\right)                                                                                                                                \\
+      & = \sum_{x_6} T_5(x_6)                                                                                                                                                                          \\
+      & = T_6
+\end{align*}
+
+We can calculate
+\qquad \begin{tabular}{r|c}
+               & cost             \\\hline
+    $T_1(x_2)$ & $\abs{\Omega}^2$ \\
+    $T_2(x_3)$ & $\abs{\Omega}^3$ \\
+    $T_3(x_5)$ & $\abs{\Omega}^2$ \\
+    $T_4(x_5)$ & $\abs{\Omega}^2$ \\
+    $T_5(x_6)$ & $\abs{\Omega}^2$ \\
+    $T_6$      & $\abs{\Omega}^1$ \\
+\end{tabular}
+
+giving total cost $\abs{\Omega} + 4\abs{\Omega}^2 + \abs{\Omega}^3$ where the cost is calculated by $\abs{\Omega}^{\# \text{new neighbors} +  1}$ in the graph.
+
+\section{April 11}
+Let
+\[p(x) = \frac{1}{Z} \phi_1(x_1)\phi_{12}(x_{12})\phi_{23}(x_{23})\phi_5(x_5) \phi_{56}(x_{56})\]
+on
+\begin{center}
+    \begin{tikzpicture}[node distance=2 cm]
+        \node (1) at (0, 0) {1};
+        \node[right of=1] (2) {2};
+        \node[right of=2] (3) {3};
+        \node[below right of=2] (4) {4};
+        \node[right of=3] (5) {5};
+        \node[right of=5] (6) {6};
+
+        \draw (1) -- (2) -- (3) -- (5) -- (6);
+        \draw (2) -- (4) -- (3);
+    \end{tikzpicture}
+\end{center}
+
+If we visit the vertices in the order $1, 2, 3, 4, 5, 6$, we can calculate costs
+\begin{center}
+    \begin{tikzpicture}[node distance=2 cm]
+        \node (1) at (0, 0) {$\abs{\Omega}^2$};
+        \node[right of=1] (2) {$\abs{\Omega}^3$};
+        \node[right of=2] (3) {$\abs \Omega^3$};
+        \node[below right of=2] (4) {$\abs{\Omega}^2$};
+        \node[right of=3] (5) {$\abs \Omega^2$};
+        \node[right of=5] (6) {$\abs \Omega^1$};
+
+        \draw (1) -- (2) -- (3) -- (5) -- (6);
+        \draw (2) -- (4) -- (3);
+    \end{tikzpicture}
+\end{center}
+giving total $\abs{\Omega} + 3\abs \Omega^2 + 2\abs \Omega^3$
+
+by letting the currectly visited vertex $v_k$ having visited $v_1, \dots, v_{k-1}$ with cost $\abs{\Omega}^{D_A + 1}$ where
+\begin{align*}
+    A   & = [n] \setminus \{v_1, \dots, v_k\}                        \\
+    D_A & = \partial A =\{u \in A: \exists v \notin A, \; u \sim v\}
+\end{align*}
+
+Notice, though, that if we visit the vertices instead in the order 1, 2, 4, 3, 5, 6, we have cost
+\[\abs{\Omega}^2 + \abs{\Omega}^3 + \abs \Omega^2 + \abs \Omega^2 + \abs \Omega^1= \abs \Omega + 4\abs \Omega^2 + \abs \Omega^3 \]
+which is much better. We call this the \tbf{boundary trick}.
+
+\begin{tbox}{\textbf{Marginalization Theorem:} Let the marginal distribution of $(X_A)$ be a GRF wrt $G''=(A, E'')$. Then for $u, v \in A$,
+        \[u \overset{E''}{\sim} v \impliedby \begin{cases}
+                u \overset{G}{\sim} v \\
+                \text{there exists a path between } u \text{ and } v \text{ entirely in } A^c
+            \end{cases}\]
+    }
+    \emph{Proof:} Suppose $A^c$ has connected components $D_1, \dots, D_k$. Denote $M_1 = D_1 \cup \underbrace{N(D_1)}_{\sub A}$.
+
+    What can we say about $N(D_1)$? Since $D_1$ is connected, we know that there must be a path between points $u, v$ in $D_1$. By definition, $u \overset{N(D_1)}{\sim} v$ so $N(D_1)$ must be a complete graph.
+
+    \tbf{Observation 1:} $\forall i$, $N(D_i)$ is complete in $G''$
+
+    \tbf{Observation 2:} Every clique $C$ in $G$ must either be in the induced graph $A$ or $M_i$ for some $i$.
+
+    For $X_v$ a GRF,
+    \begin{align*}
+        p(x_V) & = \frac{1}{Z} \prod_{c \sub G} \phi_c(x_c)                                                                                                                \\
+        p(x_A) & = \sum_{x_{A^c}} p(x_A, x_{A^c})                                                                                                                          \\
+               & = \frac{1}{Z} \sum_{x_{A^c}} \prod_{c \sub G} \phi_c(x_{A\cap C}, c_{A^c \cap C})                                                                         \\
+               & = \frac{1}{Z} \sum_{x \in D_1} \sum_{x \in D_2}\dots \sum_{x \in D_k} \prod_{c \sub G} \phi_c(x_{A\cap C}, x_{A^c \cap C})                                \\
+               & = \frac{1}{Z}\prod_{i=1}^k\left[\sum_{x \in D_i} \prod_{\begin{subarray}{c}
+                                                                                     c \sub G \\
+                                                                                     c \cap D_i \neq \emptyset
+                                                                                 \end{subarray}} \phi_c(x_{A \cap C}, x_{A^c \cap C})\right] \prod_{c \sub A} \phi_c(x_{c \cap A})
+    \end{align*}
+
+    For each $i = 1: k$,
+    \[\sum_{x \in D_i} \prod_{\begin{subarray}{c}
+                c\in G\\
+                c \cap D_i \neq \emptyset
+            \end{subarray}} \phi_c(x_{A\cap C}, x_{A^c \cap c}) = \phi_{N(D_i)}(x_{N(D_i)})\]
+    where $N(D_u)$ is a clique in $G'$
+\end{tbox}
+
+\tbf{Example:}
+
+\begin{center}
+    \begin{tikzpicture}
+        \node (1) at (0, 0) {1};
+        \node[right of=1] (2) {2};
+        \node[right of=2] (3) {3};
+        \node[below right of=3] (4) {4};
+        \node[below of=2] (5) {5};
+        \node[below left of=1] (6) {6};
+
+        \draw (6) -- (2) -- (5) -- (4) -- (3) -- (2);
+    \end{tikzpicture}
+\end{center}
+
+With $A = \{1 2, 3, 5\}$, $D_1 =\{4\}$ and $D_2=  \{6\}$ so
+\begin{align*}
+    \frac{1}{Z} \sum_{x_4} \sum_{x_6} \prod_c \phi(x_{A \cap c}, x_{A^c \cap c}) & = \frac{1}{Z} \sum_{x_4} \sum_{x_6} \left(\prod_{c \in \{12, 23, 25\}}
+    \phi(x_{1235})\right) \left(\prod_{c \in \{34, 54\}} \phi(x_{12356})\right)
+\end{align*}
+and
+\[\sum_{x_4} \prod_{c \in \{34, 45\}} \phi_c(x_{A \cap c}, x_{A^c\cap c}) = \phi_{35}\]
+
+\section{April 14}
+Suppose we know
+\[p(x_1, \dots, x_n) = \frac{1}{Z} \prod_c \phi_c(x_c)\]
+where we know $\phi_c$ but do not know $Z$. How do we sample from $p$?
+
+\subsection{Dynamic Programming}
+One method is \tbf{Dynamic Programming}:
+\[Z = \sum_{x_v} \prod_c \phi_c(x_c)\]
+This is advantangeous because it allows exact calculation of $Z$ but is very slow in practice. (Recall that on the graphs last week this method had $O(\abs{\Omega}^3)$ time. )
+
+Consider if we were on an $n \times n$ lattice
+
+\begin{center}
+    \begin{tikzpicture}[node distance=1cm]
+        \foreach \i in {0, 1, 2} {
+                \foreach \j in {0, 1, 2} {
+                        \node (\i\j) at (\i, -\j) {$\bullet$};
+                    }
+            }
+
+        \draw (00) -- (01) -- (02);
+        \draw (10) -- (11) -- (12);
+        \draw (20) -- (21) -- (22);
+        \draw (00) -- (10) -- (20);
+        \draw (01) -- (11) -- (21);
+        \draw (02) -- (12) -- (22);
+
+        \node[right of=21] {$\dots$};
+        \node[below of=12] {$\vdots$};
+    \end{tikzpicture}
+\end{center}
+
+Letting $G = (V, E)$ and $V = \{(i, j): 1 \leq i, j \leq n\}$ we have $n^2$ vertices and $2n^2$ edges.
+
+In this case, calculating $Z$ directly on only $\Omega = \{\pm 1\}$ would require a sum over $2^{n^2}$ distributions and exponential time.
+
+In any case, how do we use dynamic programming to sample from $p$? One easy way is to
+\begin{enumerate}
+    \item Sample $X_1$
+    \item Sample $X_2 \; | \; X_1$
+    \item Sample $X_n \; | \; X_1, \dots, X_{n-1}$.
+\end{enumerate}
+
+Using this method, we only need to use the arrays $T_i$ that we got from calculating $Z$.
+
+\tbf{Example:} With graph
+\begin{center}
+    \begin{tikzpicture}[node distance=2 cm]
+        \node (1) at (0, 0) {1};
+        \node[right of=1] (2) {2};
+        \node[right of=2] (3) {3};
+        \node[below right of=2] (4) {4};
+        \node[right of=3] (5) {5};
+        \node[right of=5] (6) {6};
+
+        \draw (1) -- (2) -- (3) -- (5) -- (6);
+        \draw (2) -- (4) -- (3);
+    \end{tikzpicture}
+\end{center}
+and GRF
+\[p(x_1, \dots, x_6) = \frac{1}{Z} \phi_{12} \phi_{234} \phi_{35} \phi_{56}\]
+we have
+\begin{align*}
+    Z & = \sum_{x_6} \sum_{x_5} \sum_{x_3} \sum_{x_4} \sum_{x_2} \sum_{x_1} \phi_{12} \phi_{234} \phi_{35} \phi_{56}                                                                                                                                                 \\
+      & = \underbrace{\sum_{x_6} \underbrace{\sum_{x_5} \phi_{56} \underbrace{\sum_{x_3} \phi_{35} \underbrace{\sum_{x_4} \underbrace{\sum_{x_2} \phi_{234} \underbrace{\sum_{x_1} \phi_{12}}_{T_1(x_2)}}_{T_2(x_{34})}}_{T_3(x_{3})}}_{T_4(x_5)}}_{T_5(x_6)}}_{T_6} \\
+\end{align*}
+
+Before writing down the conditional distribution, let's write down the joint distribution
+\begin{align*}
+    p(x_1, \dots, x_6)             & = \frac{1}{Z} \phi_{12} \phi_{234} \phi_{35} \phi_{56} \\
+    p(x_2, \dots, x_6)             & = \sum_{x_1} p(x_1, \dots, x_6)                        \\
+                                   & = \frac{1}{Z} \phi_{234} \phi_{35} \phi_{56} T_1(x_2)  \\
+    p(x_1 \; | \; x_2, \dots, x_6) & = \frac{p(x_1, \dots, x_6)}{p(x_2, \dots, x_6)}        \\
+                                   & = \frac{\phi_{12}}{T_1(x_2)}
+\end{align*}
+
+Similarly over the other vertices,
+\begin{align*}
+    p(x_3, \dots, x_6)             & = \sum_{x_2} p(x_2, \dots, x_6)               \\
+                                   & = \frac{1}{Z} \phi_{35} \phi_{56} T_2(x_{34}) \\
+    p(x_2 \; | \; x_3, \dots, x_6) & = \frac{\phi_{234} T_1(x_2)}{T_2(x_{34})}     \\
+    p(x_4 \; | \; x_3, \dots, x_6) & = \frac{T_2(x_{34})}{T_3(x_3)}                \\
+    p(x_3 \; | \; x_5, x_6)        & = \frac{\phi_{35} T_3(x_3)}{T_4(x_5)}         \\
+    p(x_5\; | \; x_6)              & = \frac{T_4(x_5)}{T_5(x_6)}                   \\
+    p(x_6)                         & = \frac{\phi_{56} T_5(x_6)}{Z}
+\end{align*}
+
+\subsection{Gibbs Samplers}
+Gibbs Sampling provides a cost effective alternative to dynamic program at the cost of asymptotic (rather than exact) convergence.
+
+\tbf{Example:} Let $G$ be
+
+\begin{center}
+    \begin{tikzpicture}
+        \node (1) at (0, 0) {1};
+        \node[right of=1] (2) {2};
+        \draw (1) -- (2);
+    \end{tikzpicture}
+\end{center}
+so the joint distribution is
+\[p(x_1, x_2) = p(X_1 = x_1, X_2 = x_2)\]
+
+Using the\emph{ Gibbs Sampler}, let $\pi$ be any distribution on $V(G)$.
+\begin{enumerate}
+    \item Initialize $X_1^{(0)}, \dots, X_n^{(0)}$ to any values.
+    \item Sample a vertex $i$ from $\pi$
+    \item Sample $X_i \; | \; X_{i^c} \sim p(x_i \; | \; x_{i^c})$
+    \item Iterate
+\end{enumerate}
+
+Now we have RVs $(X_i^{(t)})_{i \in V, t = 0, 1, 2, \dots}$. As we will see, $\text{dist}(X_1^{(t)}, \dots, X_n^{(t)}) \overset{t \to \infty}{\longrightarrow} p$.
 \end{document}
+
+
