@@ -1,0 +1,470 @@
+\documentclass[8pt]{extarticle}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{letterpaper, margin=0.25in}
+\usepackage{graphicx} 
+\usepackage{parskip}
+\usepackage{multicol}
+\usepackage{booktabs}
+\usepackage{array} 
+\usepackage{paralist} 
+\usepackage{verbatim}
+\usepackage{subfig}
+\usepackage{fancyhdr}
+\usepackage[shortlabels]{enumitem}
+
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0pt} 
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} 
+\usepackage[titles,subfigure]{tocloft}
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} %
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{empheq}
+\usepackage{xcolor}
+\usepackage{bbm}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{tikz-cd}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{intersections, decorations.markings}
+\tikzset{
+    marking along/.style n args={2}{
+        decoration={
+                markings, 
+                mark=at position #1 with {\arrow{#2}}
+        },
+        postaction={decorate}
+        },
+    marking along/.default={0.5}{>}
+    wavy/.style={
+        decorate,decoration={coil,aspect=0}
+     },
+    two marks/.style n args={1}{
+        decoration={
+            markings,
+            mark=at position 0.25 with {\arrow{#1}},
+            mark=at position 0.75 with {\arrow{#1}}
+         },
+         postaction={decorate}
+    }, 
+    two marks/.default={>}
+}
+
+\colorlet{mygreen}{green!50!teal}
+
+\newcommand{\ans}[1]{\boxed{\text{#1}}}
+\newcommand{\vecs}[1]{\langle #1\rangle}
+\renewcommand{\hat}[1]{\widehat{#1}}
+
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\C}{\mathbb{C}}
+
+\newcommand{\ind}{\mathbbm{1}}
+\newcommand{\qed}{\quad \blacksquare}
+
+\newcommand{\brak}[1]{\left\langle #1 \right\rangle}
+\newcommand{\bra}[1]{\left\langle #1 \right\vert}
+\newcommand{\ket}[1]{\left\vert #1 \right\rangle}
+
+\newcommand{\abs}[1]{\left\vert #1 \right\vert}
+\newcommand{\norm}[1]{\left\vert\left\vert #1 \right\vert\right\vert}
+\newcommand{\mfX}{\mathfrak{X}}
+\newcommand{\ep}{\varepsilon}
+
+\newcommand{\Ec}{\mathcal{E}}
+\newcommand{\Nc}{\mathcal{N}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\Cc}{\mathcal{C}}
+\newcommand{\B}{\mathcal{B}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\X}{\chi}
+\renewcommand{\L}{\mathcal{L}}
+
+\newcommand{\sub}{\subseteq}
+\newcommand{\st}{\text{ s.t. }}
+\newcommand{\card}{\text{card }}
+\renewcommand{\div}{\vspace*{5pt}\hrule\vspace*{5pt}}
+\newcommand{\surj}{\twoheadrightarrow}
+\newcommand{\inj}{\hookrightarrow}
+\newcommand{\biject}{\hookrightarrow \hspace{-8pt} \rightarrow}
+\renewcommand{\bar}[1]{\overline{#1}}
+\newcommand{\overcirc}[1]{\overset{\circ}{#1}}
+\newcommand{\diam}{\text{diam }}
+\newcommand{\iid}{\overset{	ext{iid}}{\sim}}
+
+\renewcommand{\Re}{\text{Re}\,}
+\renewcommand{\Im}{\text{Im}\,}
+\newcommand{\Var}{\text{Var}\,}
+\newcommand{\Cov}{\text{Cov}\,}
+
+\DeclareMathOperator*{\argmax}{\arg\max}
+\DeclareMathOperator*{\argmin}{\arg\min}
+
+\newcommand{\sign}{\text{sign}\,}
+
+\newcommand*{\tbf}[1]{\ifmmode\mathbf{#1}\else\textbf{#1}\fi}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable, skins}
+\tcbset{enhanced}
+\newenvironment*{tbox}[2][gray]{
+    \begin{tcolorbox}[
+        parbox=false,
+        colback=#1!5!white,
+        colframe=#1!75!black,
+        breakable,
+        title={#2}
+    ]}
+    {\end{tcolorbox}}
+
+\newenvironment*{exercise}[1][red]{
+    \begin{tcolorbox}[
+        parbox=false,
+        colback=#1!5!white,
+        colframe=#1!75!black,
+        breakable
+    ]}
+    {\end{tcolorbox}}
+
+\newenvironment*{proof}[1][blue]{
+\begin{tcolorbox}[
+    parbox=false,
+    colback=#1!5!white,
+    colframe=#1!75!black,
+    breakable
+]}
+{\end{tcolorbox}}
+\newenvironment*{proposition}[1][gray]{
+    \begin{tcolorbox}[
+        parbox=false,
+        colback=#1!5!white,
+        colframe=#1!75!black,
+        breakable,
+        left=2pt, right=2pt
+    ]}
+    {\end{tcolorbox}}
+
+\title{}
+\author{}
+\date{}
+
+\begin{document}
+\begin{multicols}{3}
+    \section*{Entropy}
+    \tbf{Emprirical Distribution:}
+    \[\hat p_x = \frac{\#\{i: X_i = x\}}{n} = \frac{1}{n} \sum_{i=1}^{n} \ind\{X_i = x\} \]
+
+    \tbf{Stirling's Approximation:}
+    \[k! \approx k^k  e^{-k} \sqrt{2\pi k}\]
+
+    \tbf{Shannon Entropy:} For $p$ a distribution,
+    \[H(p) = -\sum_x p(x) \log p(x)\]
+    with
+    \begin{itemize}
+        \item $H(X, Y) = H(X) + H(Y)$ if $X$ and $Y$ are independent
+    \end{itemize}
+
+    \begin{proposition}
+        \textbf{Maximum Entropy Principle:}
+        \[p(x) = \frac{1}{Z} \exp\left(\sum_{i=1}^k \lambda_i T_i(x)\right)\]
+        for normalizing constant $Z$ and parameters $\lambda_{i=1:k}$ is the distribution that maximizes $H(p)$ subject to
+        \[\begin{cases}
+                \sum p_x \Ec_1(x) = \theta_1 \\
+                \sum p_x \Ec_2(x) = \theta_2 \\
+                \vdots                       \\
+                \sum p_x \Ec_k(x) = \theta_k \\
+                \sum p_x = 1
+            \end{cases}\]
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Large Deviation Principle:} Let $p$ be a distribution on $\{1, \dots, s\}$ and $\Ec: \{1, \dots, s\} \to \R$. If $X_1, \dots, X_n \iid p$ satisfy
+        \[\frac{1}{n} \sum_{i=1}^n \Ec(X_i) = \theta\]
+        then
+        \[\E_{\hat p} \Ec(X) = \sum_{x=1}^s \hat p_x \Ec(x) = \theta\]
+    \end{proposition}
+
+    \begin{proposition}
+        \tbf{KL Divergence:} For $p, q$ two distributions,
+        \[D(q \parallel p) = \sum_{x=1}^s q_x \log \frac{q_x}{p_x}\]
+        satisfies
+        \begin{enumerate}
+            \item $D(q \parallel p) \geq 0$
+            \item $D(q \parallel p) = 0 \iff q = p$
+        \end{enumerate}
+    \end{proposition}
+
+    \tbf{Convexity:} $f$ is convex if $\forall \lambda \in [0, 1]$,
+    \[f(\lambda x + (1- \lambda)y) \leq \lambda f(x) + (1 - \lambda)f(y)\]
+    equivalently, if $f''(x) \geq 0$
+
+    \begin{proposition}
+        \textbf{Jensen's Inequality:} For $g: \R \to \R$ convex, $\E[g(X)] \geq g(\E[X])$
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Sanov's Theorem:} Let $B$ be an open subset of the set of function on $\{1, \dots, s\}$. Then
+        \[\lim_{n \to \infty} \frac{1}{n} \log \P(\hat p\in B) = -\inf_{q \in B} D(q \parallel p)\]
+        where $\hat q$ is the empirical distribution of $X_1, \dots, X_n$.
+
+        Further, if $p^* = \argmin_{q \in B} D(q \parallel p)$ is unique, then
+        \[\lim_{n \to \infty} \P(\norm{\hat p - p^*}> \ep \; | \; \hat p \in B) = 0 \qquad \forall \ep > 0\]
+        for any metric $\norm{\cdot}$ on the space of distributions.
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Exponential Family:} Distributions of the form
+        \[p(x; \lambda) = \frac{1}{Z(\lambda)} \exp\left(\sum_{i=1}^k \lambda_i T_i(x)\right)\]
+        comprise an exponential family with sufficient statistics $T_i(x)$ and natural parameters $\lambda_i$ satisfying
+        \begin{enumerate}
+            \item $\frac{\partial }{\partial \lambda_k} \log Z_{\lambda} = \E_{\lambda}[T_k(x)]$
+            \item $\frac{\partial^2}{\partial \lambda_k \, \partial \lambda_j} \log Z_{\lambda} = \Cov_{\lambda}(T_k(x), T_j(x))$
+            \item $\log Z_{\lambda}$ is convex in $\lambda$ and strictly convex unless the conditions $\{E_{p^*}[T_k(x)] = \theta_k\}_{k=1}^c$ are redundant
+            \item $\log Z_{\lambda} -\sum_{k=1}^c \lambda_k \theta_k$ is strictly convex and is minimized when $\E_{\lambda}[T_k(x)] = \theta_k$
+        \end{enumerate}
+    \end{proposition}
+
+    \section*{Source Coding}
+    \tbf{Prefix code:} A \emph{code} $C: \{1, \dots, t\} \to \{0, 1\}^*$ is a \emph{prefix code} if $C(x)$ is not a prefix of $C(y)$ for any $x \neq y$.
+
+    \begin{proposition}
+        \textbf{Kraft-McMillan:}
+        \begin{enumerate}
+            \item For all prefix codes $C$,
+                  \[\sum_{x=1}^t 2^{-\abs{C(x)}} \leq 1\]
+            \item For any code lengths $\ell_1, \dots, \ell_t$ satisfying
+                  \[\sum_{x=1}^t 2^{-\ell_x} \leq 1\]
+                  there exists a prefix code $C$ such that $\abs{C(x)} = \ell_x$ for all $x=1:t$.
+        \end{enumerate}
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Theorem:} Let $X \sim p$. For the optimal $C^* = \argmin_{C \text{ prefix}} \E_{p} \abs{C(x)}$,
+        \[H(p) \leq \E_p \abs{C^*(X)} \leq H(p) + 1\]
+
+        \div
+
+        \tbf{Block Coding:} Further, for $n$ fixed,
+        \[H(p) \leq \frac{1}{n} \E_p \abs{C^*_n(X_{1:n})} \leq H(p) + \frac{1}{n}\]
+        so by coding large enough blocks, we can get arbitrarily close to $H(p)$ bits/symbol.
+    \end{proposition}
+
+    \section*{Statistical Learning}
+    \tbf{Unbiased Estimator:} Suppose $\hat \theta = \hat \theta(X_1, \dots, X_n)$ is an estimator of $\theta$. We say $\hat \theta$ is unbiased if $\E[\hat \theta] = \theta$
+
+    \tbf{Consistency:} $\hat \theta_n$ is consistent if $\hat \theta_n \to \theta$ in some sense.
+    \begin{itemize}
+        \item $\hat \theta_n \overset{a.s.}{\longrightarrow} \theta$ if $\P(\lim_{n \to \infty} \hat \theta_n = \theta) = 1$
+        \item $\hat \theta_n \overset{\P}{\longrightarrow} \theta$ if $\forall \ep > 0$, $\P\left(\abs{\hat \theta_n - \theta} > \ep\right) \to 0$ as $n \to \infty$
+        \item $\hat \theta_n \overset{L^2}{\longrightarrow} \theta$ if $\E\left[\abs{\hat \theta_n - \theta}^2\right] \to 0$ as $n \to \infty$
+    \end{itemize}
+
+    \tbf{Mean Square Error (MSE):} $\text{MSE}(\hat \theta) = \E\abs{\hat \theta_n - \theta}^2 = \Var(\hat \theta) + (\E[\hat \theta_n] - \theta)^2$
+
+    \tbf{Kensity Density Estimation:} For a function $k$ satisfying $k \geq 0$, $E[k] =0$, $\Var[k]= 1$, we approximate a discrete density $f$ by the continuous density
+    \begin{align*}
+        \hat f_{n, w}(x, X_1, \dots, X_n) & = \frac{1}{n} \sum_{i=1}^n k_w(x - X_i) \\ &= \frac{1}{n} \sum_{i=1}^n \frac{k(x/w)}{w}
+    \end{align*}
+
+    since for $\text{MSE} = \text{bias}^2 + \text{variance}$, we have
+    \begin{itemize}
+        \item bias $\searrow$ and variance $\nearrow$ as $w \to 0$
+        \item bias $\nearrow$ and variance $\searrow$ as $w \to \infty$
+    \end{itemize}
+    and
+    \[\E[\hat f_{n, w}(x)] = \int_{\R} f(t) k_{w}(x - t)\; dt = (f \star k_w)(x)\]
+
+    \tbf{Integrated Square Error (ISE):}
+    \[\text{ISE} = \int_{\R} \abs{\hat f_n(x,\; X_1, \dots, X_n) - f(x)}^2\; dx \]
+
+    \tbf{Mean Integrated Square Error (MISE):}
+    \[\text{MISE} = \E[\text{ISE}] = \int_{\R} \E\abs{\hat f(x, \; X_1, \dots, X_n)}^2\; dx\]
+
+    \begin{proposition}
+        \textbf{Theorem:} For $f$ smooth and $k$ a kernel density, as $w \to 0$,
+        \[\text{MISE}_{n, w} = \alpha w^4 + \frac{\beta}{nw} + \text{error}\]
+        for $\alpha, \beta$ constants.
+
+        \div
+
+        \tbf{Sylverman's Rule of Thumb:} The optimal bandwidth $w^* \propto n^{-1/5}$.
+    \end{proposition}
+
+
+    \tbf{Cross-validation Estimator:} With
+    \[\hat f_{n-1, w}^{(i)}(X_i) = \hat f_{n-1, w}(x, \; X_1 \dots X_{i-1}, X_{i+1} \dots X_n)\]
+    define
+    \[I = \frac{1}{n} \sum_{i=1}^n\hat f_{n-1, w}^{(i)}(X_i)\]
+
+    \begin{proposition}
+        \textbf{Theorem (Stone 1984):} with $w$ chosen by
+        \[\argmin_w \left[\int \hat f_{n, w}(x)^2 -\frac{2}{n} \sum_{i=1}^n \hat f_{n-1, w}^{(i)}(X_i)\right]\]
+        we have
+        \[\text{ISE}(\hat f_{\hat w_n}, f) \overset{a.s.}{\longrightarrow} \inf_w \text{ISE}(\hat f_{w, n}, f)\]
+        though the convergence is very slow in high-dimensional spaces.
+    \end{proposition}
+
+    \tbf{Maximum Likelihood Estimation (MLE):}
+    \begin{align*}
+        \hat \theta & = \argmax_{\theta} p_{\theta}(X_1 = x_1, \dots, X_n = x_n) \\
+                    & = \argmin_{\theta} D(\hat p \parallel p_{\theta})
+    \end{align*}
+
+    \begin{proposition}
+        \textbf{Bayes' Classification Rule:}
+        \begin{align*}
+            h^*(x) & = \argmax_{c} \P(Y = C \; | \; X= x) \\ &= \argmax_c \frac{\pi_c f_c(x)}{\P(X = x)}
+        \end{align*}
+        for $\pi_i = \P(Y = i)$, $f_i(x) = \P(X = x \; | \; Y = i)$ the class-conditional densities.
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Neyman-Pearson Classification:} Fix $t \in (0, \infty)$. Then
+        \[h_t(x) = \begin{cases}
+                2 & \frac{\pi_1 f_1(x)}{\pi_2 f_2(x)} > t \\
+                1 & \text{otherwise}
+            \end{cases}\]
+        \tbf{Remark:} In the case $t = \pi_1/\pi_2$, NP is equivalent to Bayes' classification rule (the optimal classifier).
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Theorem:} For $h$ any classifier, with $\P(h(X) = 2 \; | \; Y= 1) \leq \P(h_{NP}(X) = 2 \; | \; Y= 1)$, we have $\P(h(X) = 2 \; | \; Y= 2) \leq \P(h_{NP}(X) = 2 \; | \; Y= 2)$.
+
+        That is, NP is the classifier which maximizes the detection rate relative to the false alarm rate.
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Naive Bayes':} Assume that $f_c(x_1, \dots, x_d) = \prod_{i=1}^d f_c(x_i)$.
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Softmax:} Let $r_c(x) = \P(Y = c \; | \; X= x)$. Then we have linear decision boundaries
+        \[\log \frac{r_k(x)}{r_1(x)} = \alpha_k + \beta_k x\]
+        and
+        \[r_k(x) = \frac{e^{\alpha_k + \beta_k x}}{1 + \sum_{k=2}^s e^{\alpha_k + \beta_k x}}\]
+        where we find $\alpha_k, \beta_k$ by MLE.
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{k-Nearest Neighbors:} Let $D_k(x)$ be the closed ball at $x$ with radius $R_k(x)$, the smallest radius that contains $k$ points. Then
+        \[\hat r_c(x) = \frac{\#\{i: X_i \in D_k(x), \; Y_i = c\}}{k}\]
+
+        In this case,
+        \[\hat r_c(x) \to r_c(x)\]
+        i.e., the estimator is consistent.
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Support Vector Machine:} For any collection of data $\{(X_i, Y_i)\}_{i=1}^n \sub \R^d \times \Z_2$, we can find a transformation $\phi: \R^d \to \R^{d'}$ with $d' \gg d$, such that the $d'$-dimensional hyperplane $\alpha + \beta x_i$ separates the data.
+
+        Our goal then is to find the \tbf{maximum margin classifier}
+        \[h(x) = \text{sign}(\hat \alpha + \hat \beta x)\]
+        where
+        \[(\hat \alpha, \hat \beta) = \argmax_{\alpha, \beta} \min_{i=1:n} \text{dist} (X_i, \{\alpha + \beta x = 0\})\]
+        for all $i: (\alpha + \beta x_i) Y_i \geq 0$.
+    \end{proposition}
+
+    \section*{Graphical Models}
+    \tbf{Clique:} Let $G = (V, E)$ be a graph. Then $C \sub V$ is a \emph{clique} if $\forall i \neq j \in C$, $(i, j) \in E$.
+
+    \tbf{Gibbs Random Field (GRF):} $\{X_v\}_{v \in V}$ is a GRF with respect to $G$ if
+    \[p(x) = \frac{1}{Z} \prod_{c\text{ cliques in } G} \phi_c(x_c)\]
+    for some $\phi_c: \Omega_c \to [0, \infty)$ clique functions and $Z$ a partition function.
+
+    \tbf{Strictly Positive GRF:} If $\phi_c > 0$ for all $c$, then the GRF is \emph{strictly positive}. Equivalently, $\forall x_1, \dots, x_M$, $p(x_1, \dots, x_M) > 0$.
+
+    \tbf{Markov Chain:} A Markov chain satisfies
+    \[p(x_1, \dots, x_n) = p(x_1) \prod_{i=2}^n p(x_i \; | \; x_{i-1})\]
+    \begin{proposition}
+        \textbf{Proposition (Independence):} Two random variables $X$ and $Y$ on a GRF are independent if there exists no paths between them
+
+        \div
+
+        \tbf{Remark:} Independence does not imply there is no path between $X$ and $Y$ (even on a minimal graph!)
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Conditioning Theorem:} Let $A \sub V(G)$ be a set of nodes. Then $(X_v)_{v \in A}$,conditioned on $X_{V \setminus A}$, is a GRF with respect to the subgraph
+        \[G \vert_A = (A, \{(i, j): i, j \in A, \; i \overset{G}{\sim} j\})\]
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{Marginalizing Theorem:} Let $A \sub V(G)$ be a set of nodes. Then $\{X_v\}_{v \in A}$, marginalized over $\{X_{V \setminus A}\}$, is a GRF with respect to the graph $G' = (A, E')$ where
+        \[u \overset{G'}{\sim} v \iff \begin{cases}
+                u \overset{G}{\sim} v \\
+                \text{exists path from } u \text{ to } v \text{ in } A^c
+            \end{cases}\]
+    \end{proposition}
+
+    \tbf{Markov Random  Field (MRF):} $(X_v)_{v \in G}$ is a Markov Random Field if
+    \[\P(X_i = x_i \; | \; X_{i^c} = x_{i^c}) = \P(X_i = x_i \; | \; x_{N(i)} = x_{N(i)})\]
+    where $N(i) = \{j: (i, j) \in E\}$ is the neighborhood of $i$ in $G$.
+
+    \begin{proposition}
+        \textbf{Theorem (Hammersley-Clifford):} Assume $(X_v)$ is strictly positive. Then $X$ is a GRF iff it is a MRF.
+    \end{proposition}
+
+    \tbf{Dynamic Programming:} To sample from a GRF, we need to know the partition function $Z$. We can calculate this by
+    \[Z = \sum_{x_v} \prod_{c \text{ cliques}} \phi_c(x_c)\]
+    or by the much faster
+    \begin{enumerate}
+        \item Sample $X_1$
+        \item Sample $X_2 \; | \; X_1$
+        \item Sample $X_n \; | \; X_1, \dots, X_{n-1}$.
+    \end{enumerate}
+    according to the visitation schedule that minimizes $\sum_{x} \abs{\Omega}^{k_x}$ where $k_x = \#\text{new neighbors} + 1$ and $\abs{\Omega}$ is the size of the state space.
+
+    \tbf{Gibbs Sampling:} Gibbs Sampling provides a cost effective alternative to dynamic programming:
+    \begin{enumerate}
+        \item Randomly initialize $X_1^{(0)}, \dots, X_n^{(0)}$
+        \item Sample a vertex $i \sim \pi$ where $\pi$ is any distribution over $V$
+        \item Let $X_i^{(t)} \sim p(x_i^{(t-1)} \; | \; x_{i^c}^{(t-1)})$ and $X_{i^c}^{(t)} = X_{i^c}^{(t-1)}$
+        \item Iterate
+    \end{enumerate}
+
+    \begin{proposition}
+        \textbf{Proposition:} Let $X^{(0)}, \dots, X^{(N)}$ be a Gibbs sampler and $q_t$ a distribution on $X^(t)$. Then
+        \[D(q_t \parallel p) \leq D(q_{t-1} \parallel p) \qquad \forall t\]
+    \end{proposition}
+
+    \begin{proposition}
+        \textbf{EM Algorithm:} For a general exponential family
+        \[f(x, y, \lambda) = \frac{1}{Z_{\lambda}} p(x, y) e^{\sum_{i=1}^k \lambda_i T_i(x, y)}\]
+        wiht observed data $Y = (y_i)$, we have log-likelihood
+        \[\ell(y, \lambda) = \sum_{i=1}^{n} \log\left(\frac{1}{Z_{\lambda}} \sum_x p(x, y_i) e^{\sum_j \lambda_j T_j(x, y_j)}\right) \]
+        and
+        \[\E_{\lambda}[T_k(x, y)] = \frac{1}{n} \sum_{i=1}^n \E_{\lambda}[T_k(x, y_i)]\]
+        hence, we can find $\hat \lambda$ by
+        \begin{enumerate}
+            \item \emph{E-step:}
+                  \[\hat T_k^{(t)} = \frac{1}{n} \sum_{i=1}^n \E_{\lambda(t)}[T_k(x, y_i \; | \; y_i)]\]
+            \item \text{M-step:} Find $\lambda(t + 1)$ by
+                  \[\E_{\lambda(t+1)}[T_k(x, y)] = \hat T_k^{(t)}\]
+        \end{enumerate}
+    \end{proposition}
+
+    \tbf{MM Algorithm:} The EM algoirhtm is a subset of a large class of \emph{MM Algorithms} seeking to maximize $\ell(\theta)$ given $A(\theta, \tilde \theta)$ satisfying
+    \begin{enumerate}
+        \item $A(\theta, \tilde \theta) \leq \ell(\theta)$
+        \item $A(\theta, \theta) = \ell(\theta)$
+    \end{enumerate}
+
+    In this case, we define
+    \[\theta^{(t+1)} = \argmax_{\theta} A(\theta, \theta^{(t)})\]
+    in which case $\ell(\theta^{(t)}) \leq \ell(\theta^{(t+1)})$
+\end{multicols}
+\end{document}

@@ -3532,6 +3532,7 @@ We notice that $p$ is an exponential family with $(x) = \sum_{i \sim j} x_i x_j$
 Observe $\{(X_1, \dots, X_n)^{(i)}\}_{i=1}^n$ samples. Then $\hat \beta$ satisfies
 \[\E_{\hat \beta} T(X) = E_{\hat \beta} \left[\sum_{i \sim j} X_i^{(i)} X_j^{(i)}\right] = \frac{1}{n} \sum_{i=1}^n \sum_{j \sim i} X_i^{(j)} X_j^{(j)}\]
 
+\section{April 23}
 \tbf{Example (Noisy Ising):} Let $x_i \sim \text{Ising}$ be hidden with $y_i \sim \Nc(x_i, \sigma^2)$ be observed. We want to estimate $x_i$ given $y_i$.
 \[f(x, y, \theta) = \frac{1}{Z_{\theta}} e^{\beta \sum_{i \sim j} x_i x_j} e^{-\sum_{i=1}^{N^2} \frac{(y_i - x_i)^2}{2\sigma^2}}\]
 where $\theta = (\beta, -\frac{1}{2\sigma^2})$ and $T_1 = \sum_{i \sim j} x_i x_j$, $T_2 = \sum_{i=1}^{N^2} (y_i - x_i)^2$.
@@ -3555,6 +3556,74 @@ Taking the derivative with respect to $\lambda$ and setting to zero gives
 \[0 = \frac{\partial }{\partial \lambda_k} \ell(y, \lambda) = \sum_{i=1}^n \E_{\lambda} (T_j(x, y^i) \; | \; y^i) - n\E T_k(x, y^i)\]
 hence,
 \[\frac{1}{n} \sum_{i=1}^n \E_{\lambda} (T_k(x, y_i) \; | \; y_i) = \E_{\lambda} T_k(x, y)\]
+
+Our goal is to find $\hat \lambda$, for which we introduce the \tbf{EM Algorithm}
+\begin{enumerate}
+	\item \emph{E-step:} Calculate
+	      \[\hat T_k^{(t)} = \frac{1}{n} \sum_{i=1}^n \E_{\lambda(t)} (T_k(x, y_i) \; | \; y_i)\]
+	\item \emph{M-step:} Find $\lambda(t + 1)$:
+	      \[\E_{\lambda(t +1)} T_k(x, y) = \hat T_k^{(t)}\]
+\end{enumerate}
+
+This is a subset of a large class of \tbf{MM Algorithms}.
+
+\tbf{MM Algorithm:} assume you want to maximize $\ell(\theta)$ given $A(\theta, \tilde \theta)$ satisfying
+\begin{enumerate}
+	\item $A(\theta, \tilde \theta) \leq \ell(\theta)$
+	\item $A(\theta, \theta) = \ell(\theta)$
+\end{enumerate}
+
+Then we can maximize $\ell(\theta)$ by
+\[\theta^{(t + 1)} = \argmax_{\theta} A(\theta, \theta^{(t)})\]
+
+\begin{tbox}{\textbf{Claim:} $\ell(\theta^{(t)}) \leq \ell(\theta^{(t+1)})$ }
+	\emph{Proof:}
+	\[\ell(\theta^t) \overset{2}{=} A(\theta^t, \theta^t) \leq A(\theta^{t+1}, \theta^{t}) \overset{1}{\leq} \ell(\theta^{(t+1)})\]
+\end{tbox}
+
+Hence, we want to maximize
+\begin{align*}
+	\ell(\theta)             & = \log p(y, \theta)                                                                                       \\
+	A(\theta, \tilde \theta) & = \E_{\tilde \theta}\left[\log \frac{p(x, y, \theta)}{p(x \; | \; y, \tilde \theta)} \; | \; Y = y\right]
+\end{align*}
+so
+\[\lambda(t+1) = \max_{\lambda} A(\lambda, \lambda^t)\]
+
+\begin{exercise}
+	\textbf{Exercise:} Show $A$ satisfies condition 2.
+
+	\div
+
+	\emph{Solution:}
+	\begin{align*}
+		A(\theta, \theta) & = \E_{\theta} \left[\log \frac{p(x, y, \theta)}{p(x \; | \; y, \theta)}\right]                                                   \\
+		                  & = \E_{\theta} \left[\log p(x, y, \theta)\right] - \E_{\theta} \left[\log p(x \; | \; y, \theta)\right]                           \\
+		                  & = \E_{\theta} \left[\log p(x, y, \theta)\right] - \E_{\theta} \left[\log p(x, y, \theta)\right] + \E_{\theta}[\log p(y, \theta)] \\
+		                  & = \E_{\theta}[\log p(y, \theta)]                                                                                                 \\
+		                  & = \E[\log p(y \; | \; y)]                                                                                                        \\
+		                  & = \log p(y) = \ell \theta
+	\end{align*}
+\end{exercise}
+
+\begin{exercise}
+	\textbf{Exercise:} Show $A$ satisfies condition 1.
+
+	\div
+
+	\emph{Solution:} We have
+	\begin{align*}
+		A(\theta, \tilde \theta) & = \E_{\tilde \theta} \left[\log \frac{p_{\theta}(x, y)}{p_{\tilde \theta}(x \; | \; y)}\right]                     \\
+		                         & = \E_{\tilde \theta} \left[\log \frac{p_{\theta}(x \; | \;y) p_{\theta}(y)}{p_{\tilde \theta}(x \; | \; y)}\right] \\
+		                         & = \E[\log p_{\theta}(y)] + \E\left[\frac{p_{\theta}(x \; | \; y)}{p_{\tilde \theta}(x \; | \; y)}\right]           \\
+		                         & = \log p_{\theta}(y) - D(p_{\tilde \theta}(\cdot \; | \; y) \parallel p_{\theta}(\cdot \; | \; y))                 \\
+		                         & \leq \log p_{\theta}(y)                                                                                            \\
+		                         & = \ell(\theta)
+	\end{align*}
+
+	\tbf{Remark:} we could also prove this without going through KL-divergence using Jensens' inequality
+
+\end{exercise}
+
 \end{document}
 
 
